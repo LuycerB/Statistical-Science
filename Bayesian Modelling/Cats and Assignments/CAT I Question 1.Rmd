@@ -1,0 +1,67 @@
+---
+title: "CAT I Question I"
+author: "124384 Luycer Bosire"
+date: "2/7/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+title: "Bayesian Cat I"
+author: "124384 Luycer Bosire"
+date: "2/6/2021"
+output: html_document
+---
+
+**Question 1: Single parameter poisson**
+
+Consider the count of airline crashes per year over a 10-year period form 1976 to 1985:
+
+**_a. Show that the Gamma distribution is the conjugate prior for a Poisson mean._**
+
+Solution in the steps below; 
+
+1. write down the likelihood $p(X|\mu)$ for $\mu$. 
+
+The pdf and likelihood function of Poisson Distribution with parameter $\mu$ is given by;
+
+$$ f(x, \mu) = \frac {e^{-\mu}\mu^{x}}{x!} $$
+  
+$$ L(\mu; \pmb x) = \frac {e^{-n\mu}\theta^{n\bar x}}{\prod_{i=1}^nx_i!}\propto e^{-n\mu}\mu^{n\bar x} $$
+
+2. Write down the prior density for $\mu$.
+
+The prior density Gamma with parameter $$n, \lambda$$ is given by;
+
+$$ f(n, \lambda)= \frac {\beta^\alpha} {\Gamma(\alpha)} {\lambda^{(\alpha-1)}} {e^ {(-\lambda\beta)}} $$
+3. Multiply them together to obtain the posterior density, and notice that it has the same form as the gamma distribution.
+
+Using Bayes Theorem which we can write in words as
+$$\text{posterior} \propto \text{likelihood} \times \text{prior},$$
+
+In this case, the likelihood $p(D | \mu)$ is given by
+$$p(D | \mu) \propto e^{-n\mu}\mu^{n\bar x}$$ 
+```{r, echo=TRUE}
+
+    y <- c(24,25,31,31,22,21,26,20,16,22)
+    n<- length(y)
+    n
+    bar_x<- mean(y)
+    bar_x
+```
+
+where n = 10 and mean = 23.8 so our likelihood is
+$$p(D | \mu) \propto e^{-10\mu}\mu^{10*23.8}$$
+
+Combining the prior and the likelihood we get;
+
+$$ p(D | \mu) \propto (e^{-10\mu}\mu^{10*23.8}) ({\frac {\beta^\alpha} {\Gamma(\alpha)} {\lambda^{(\alpha-1)}} {e^ {(-\lambda\beta)}}}) \propto \lambda ^{(n+\alpha-1)} e^{-(n+\beta)\lambda} $$
+At this point we again apply the "trick" of recognizing this density as the density of a Gamma distribution - specifically, the Gamma distribution with parameters 
+
+$$(\alpha+n \bar x,\beta+n) \propto (\alpha+10*23.8,\beta+10)$$.
+

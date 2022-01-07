@@ -1,0 +1,292 @@
+---
+title: "Time Series Assignment II"
+author: "124384 - Luycer Bosire"
+date: "7/20/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Question One: *Use the data on manufacturing of tractors. Your task is to use the data provided to identify the model to help the manufacturing company in forecasting sales for better management of their inventories and suppliers.*
+
+Solution:
+
+## Introduction  
+We aim to study our dataset through exploratory analysis, come up with a problem statement based on our study question to identify the model and further recommend ways we can assist the manufacturing company forecast sales for better management of their inventories and suppliers based on their data and data model.
+
+We load our work space:
+
+```{r}
+Tractor_Sales <- read.csv("Tractor-Sales.csv")
+Sales <- Tractor_Sales[,-1] #We only require the column with the sales to perform our analysis
+Sales_TS <- ts(Sales,start = c(2003,1),frequency = 12)
+plot(Sales_TS,xlab="Year",ylab="Tractor Sales")
+```
+
+It appears that an additive model is not appropriate for describing this time series, since the size of the seasonal fluctuations and random fluctuations seem to increase with the level of the time series. Thus, we may need to transform the time series in order to get a time series that can be described using an additive model. For example, we can transform the time series by calculating the natural log of the original data:
+
+```{r}
+log.Sales <-log(Sales_TS)
+plot(log.Sales)
+```
+
+**Decomposing Seasonal Data**
+
+A seasonal time series consists of a trend component, a seasonal component and an irregular component. Decomposing the time series means separating the time series into these three components: that is, estimating these three components.
+
+```{r}
+Sales_TS.decomposed <- decompose(log.Sales)
+attributes(Sales_TS.decomposed)
+
+Sales_TS.decomposed$seasonal # get the estimated values of the seasonal component
+```
+
+The estimated seasonal factors are given for the months January-December, and are the same for each year. The largest seasonal factor is for July **(0.22271228)**, and the lowest is for November **(-0.25574162)**, indicating that there seems to be a peak in births in July and a decline in births in February each year.
+
+```{r}
+plot(Sales_TS.decomposed)
+```
+
+**Seasonally Adjusting**
+
+Given a seasonal time series that can be described using an additive model, *you can seasonally adjust the time series by estimating the seasonal component, and subtracting the estimated seasonal component from the original time series*. We can do this using the estimate of the seasonal component calculated by the *“decompose()”* function.
+
+For example, to seasonally adjust the time series of the number of sales per month, we can estimate the seasonal component using *“decompose()”*, and then subtract the seasonal component from the original time series; afterwhich we plot the seasonally adjusted time series:
+
+```{r}
+seasonally_adjusted <- log.Sales - Sales_TS.decomposed$seasonal
+plot(seasonally_adjusted)
+```
+
+We observe that the seasonal variation has been removed from the seasonally adjusted time series. The seasonally adjusted time series now only contains the *trend component* and an *irregular component*.
+
+```{r}
+difference_data <- diff(log.Sales)
+diff2 <- diff(difference_data)
+plot(diff2, ylab = "Sales")
+abline(h=0,col=2,lty="dashed")
+```
+The log transformed time series Tractor Sales data with no seasonal component now oscillates around 0 (constant level).
+
+**Simple Exponential Smoothing**
+
+We use simple exponential smoothing to make short-term forecasts. Simple Exponential smoothing is advisable where the time series data can be described using an additive model with constant level and no seasonality.
+
+To make forecasts using simple exponential smoothing in R, we can fit a simple exponential smoothing predictive model using the *“HoltWinters()”* function in R. To use HoltWinters() for simple exponential smoothing, we need to *set the parameters beta=FALSE and gamma=FALSE in the HoltWinters() function* (the beta and gamma parameters are used for Holt’s exponential smoothing, or Holt-Winters exponential smoothing, as described below).
+
+```{r}
+Tractorsales_forecasts <- HoltWinters(diff2, beta=FALSE, gamma=FALSE)
+Tractorsales_forecasts
+```
+
+The output tells us that the estimated value of the alpha parameter is about 0.019, which is very close to zero. This can be interpreted as the forecast made are based on both the recent and less recent observations with more weights placed on the recent observations.
+
+We can plot the original time series against the forecasts by typing:
+
+```{r}
+plot(Tractorsales_forecasts)
+```
+
+The plot shows the original time series in black, and the forecasts as a red line. The time series of forecasts is much smoother than the time series of the original data here.
+
+As explained above, **by default HoltWinters() just makes forecasts for the time period covered by the original data, which is 1813-1912 for the rainfall time series**. We can make forecasts for further time points by using the *“forecast.HoltWinters()”* function in the R *“forecast”* package. To use the forecast.HoltWinters() function, we first need to install the “forecast” R package (for instructions on how to install an R package, see How to install an R package).
+
+Once you have installed the “forecast” R package, you can load the “forecast” R package by typing:
+
+```{r}
+library("forecast")
+```
+
+When using the forecast.HoltWinters() function, as its first argument (input), you pass it the predictive model that you have already fitted using the HoltWinters() function.You specify how many further time points you want to make forecasts for by using the *“h”* parameter in forecast.HoltWinters(). We make a forecast of Tractor Sales for the years 2015-2019 (5 more years) using forecast.HoltWinters()
+
+```{r}
+forecast_5 <- forecast:::forecast.HoltWinters(Tractorsales_forecasts, h=60)
+forecast_5
+```
+
+The forecast.HoltWinters() function gives us the forecast for the five years, an $80\%$ prediction interval for the forecast, and a $95\%$ prediction interval for the forecast. The forecasted Tractor Sales for January 2015 is about 0.006 units, with a 95% prediction interval of [-0.3366727	0.3495855].
+
+**Plotting the predictions made by our forecast**
+
+```{r}
+plot(forecast_5,col =2)
+```
+
+Here the forecasts for the years 2015-2019 are plotted as a blue line, the $80\%$ prediction interval as dark-grey shaded area, and the $95\%$ prediction interval as a light-grey shaded area.
+
+The ‘forecast errors’ are calculated as the observed values minus predicted values, for each time point. We can only calculate the forecast errors for the time period covered by our original time series, which is 2003-2014 for the Tractor Sales data. The measure of accuracy of the predictive model is the sum-of-squared-errors (SSE) for the in-sample forecast errors.
+
+To figure out whether this is the case, we can obtain a *correlogram* of the in-sample forecast errors for lags 1-20. We can calculate a correlogram of the forecast errors using the *“acf()”* function in R. To specify the maximum lag that we want to look at, we use the “lag.max” parameter in acf().
+
+```{r}
+acf_residuals <- forecast_5$residuals 
+acf(acf_residuals,lag.max=60,na.action = na.omit)
+```
+
+
+```{r}
+Pacf(acf_residuals,lag.max =60 )
+```
+
+To test whether there is significant evidence for non-zero correlations at lags 1-60, we can carry out a *Ljung-Box test*. This can be done in R using the *“Box.test()”*, function. The maximum lag that we want to look at is specified using the “lag” parameter in the Box.test() function. Testing whether there are non-zero autocorrelations at lags 1-60;
+
+```{r}
+Box.test(acf_residuals, lag=60, type="Ljung-Box")
+```
+
+There is evidence against no zero correlations.
+
+ARIMA
+
+```{r}
+par(mfrow = c(1,2))
+acf(diff2)
+pacf(diff2)
+```
+
+p=0
+
+Value of p is obtained by lagging 1 step backward from the 1st inverted line.
+
+d=2
+
+The number of times the function is differentiated. In this case, it was twice.
+
+Fitting ARIMA Model
+
+c(p,d,q)
+
+```{r}
+salesarima <-arima(log.Sales,c(0,2,1),seasonal=list(order=c(0,2,1),period=12))
+salesarima
+```
+
+Predict the model(fit) created by ARIMA
+
+```{r}
+Sales_pred <- predict(salesarima,n.head=60)
+attributes(Sales_pred)
+Sales_pred1 <-2.69597^Sales_pred$pred
+Sales_pred1
+```
+
+Calculating Euler's constant (e), which associated with natural growth and natural decay.
+
+$$e=\left[1+\frac{1}{n}\right]^n=\left[1+\frac{1}{60}\right]^{60}=2.69597$$
+
+Values are in log form and needs to be converted into decimal form using e value.
+
+# Question Two: *The data set (Temperature) has data on the global mean monthly temperatures. Use the data set to develop a model to forecast mean monthly temperatures.*
+
+Solution:
+
+## Introduction  
+We aim to study our dataset through exploratory analysis and develop a model to forecast mean monthly temperatures.
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(TTR)
+library(Amelia)
+library(lmtest)
+library(tseries)
+library(forecast)
+library(magrittr)
+library(kableExtra)
+```
+
+We load our work space:
+```{r}
+Temperature <- read.csv("Temperature.csv", skip = 1)
+Temp <- Temperature[,2:13]
+rownames(Temp) <- Temperature$Year
+Temp <- Temp[-140,]
+Temp <- Temp %>% mutate_if(is.character, as.numeric) 
+Temp$Mean <- apply(Temp,1,mean)
+TempMeanTS <- ts(Temp$Mean, start = c(1880), frequency = 1)
+TempMeanTS <- TempMeanTS %>% na.omit()
+plot(TempMeanTS, xlab="Year", ylab="Monthly Mean Temperature", col="blue")
+```
+
+The plot resulting from the land-ocean mean temperatures establish that the amplitude of both the seasonal and irregular variations increase as the level of the trend rises. In this situation, a multiplicative model is usually appropriate.Since the frequency of the time series is 1, it is not possible to decompose the time series. However, by looking at the time series graph, we can identify that the data contains, trend, season and randomness. There is therefore a need to log-transform the data. These transformations are required to meet the variant assumptions on either the multiplicative or the additive models with respect to the seasonal component.
+
+## Testing for stationarity
+
+In order to test for stationarity, the analysis employed the Kwiatkowski–Phillips–Schmidt–Shin (KPSS). The test figures out if a time series is stationary around a mean or linear trend, or is non-stationary due to a unit root. It tests the following hypothesis:
+
+\begin{enumerate}
+
+\item \textbf{Null Hypothesis (H0):} If failed to be rejected, it suggests the time series does not have a unit root, meaning it is stationary. It does not have time-dependent structure.
+
+\item \textbf{Alternate Hypothesis (H1):} The null hypothesis is rejected; it suggests the time series has a unit root, meaning it is non-stationary. It has some time dependent structure.
+\end{enumerate}
+
+We interpret the results using the p-value from the test. A p-value below a threshold (such as 5% or 1%) suggests we reject the null hypothesis concluding that the time series is non-stationary, otherwise a p-value above the threshold suggests we fail to reject the null hypothesis  and conclude that the time series is stationary.
+
+```{r}
+Stationarity.Temp <- kpss.test(TempMeanTS)
+Stationarity.Temp
+```
+
+Based on land-ocean mean temperatures reveal a non-stationary time series.This is based on a KPSS value of 2.394 and a P-Value of 0.01. From theory, forecasting using non-stationary time series results to spurious and inconsistent results. Thus, we proceeded to differencing the time series.
+
+## Choice of Model
+
+As seen earlier, time series components such as trends and seasonality, need to be removed prior to modeling. Trends result in a varying mean over time, whereas seasonality can result in a changing variance over time, both which define a time series as being non-stationary. Stationary data sets are those that have a stable mean and variance, and are in turn much easier to model. To make the data stationary, the analysis employed **Differencing** which is a popular and widely used data transformation technique for making time series data stationary.
+
+## ARIMA model for forecasting Land-Ocean Mean Monthly Temperatures
+
+The ARIMA(1,1,3) with drift model is a good fit.The model has the least AIC value of -232.1 and the z test of coefficients confirms the AR1, MA1, MA2,MA3 coefficients to be statistically significant.
+
+```{r}
+fit <- auto.arima(TempMeanTS, seasonal = T)
+summary(fit)
+coeftest(fit)
+```
+
+To confirm if differencing once is adequate to make the series stationary, we plot the ACF and Partial ACF plots
+
+```{r}
+par(mfrow=c(1,2))
+Acf(fit$residuals, main="ACF")
+Pacf(fit$residuals,main="PACF")
+```
+
+
+From the ACF and PACF graphs, we can see that the correlations are fairly within the confidence band confirming that,the ARIMA(1,1,3) with drift model is a good fit.
+
+## Forecasting Results
+
+```{r}
+library("forecast")
+temp_forecasts <- HoltWinters(TempMeanTS, beta=FALSE, gamma=FALSE)
+```
+
+We can plot the original time series against the forecasts by typing:
+
+```{r}
+plot(temp_forecasts)
+```
+
+The plot shows the original time series in black, and the forecasts as a red line.
+
+```{r}
+temp_forecasts1 <- forecast:::forecast.HoltWinters(temp_forecasts, h=7)
+temp_forecasts1%>% 
+kbl(caption="HoltWinters Mean Temperature Forecasts ",booktabs = T,
+      linesep = "") %>% 
+  kable_styling(latex_options = c("striped","hold_position","scale_down"),
+                position = "center",full_width = F)
+```
+
+The forecast.HoltWinters() function gives you the forecast for a year, a 80% prediction interval for the forecast, and a 95% prediction interval for the forecast. For example, the forecasted mean temperature for 2025 is about 0.85, with a 95% prediction interval of (0.51,1.2).
+
+## Plotting The Predictions
+
+```{r}
+plot(temp_forecasts1,col =2)
+```
+
+
+Reference: https://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/src/timeseries.html 
+ 

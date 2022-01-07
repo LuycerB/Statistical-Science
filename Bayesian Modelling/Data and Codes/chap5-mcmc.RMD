@@ -1,0 +1,131 @@
+---
+title: "MCMC Examples"
+author:
+  name: Prof SM Mwalili
+  affiliation: 
+  # email: smusili@jkuat.ac.ke
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: haddock
+    # code_folding: show
+    toc: no
+    toc_depth: 3
+    toc_float: no
+    keep_md: true
+---
+
+# Metroplois Example:
+## Sampling from an exponential distribution using MCMC
+Any MCMC scheme aims to produce (dependent) samples from a _target_ distribution. In this case we are going to use the exponential distribution with mean 1 as our target distribution. So we start by defining our target density:
+
+```{R}
+target = function(x){
+  if(x<0){
+    return(0)}
+  else {
+    return( exp(-x))
+  }
+}
+```
+
+Having defined the function, we can now use it to compute a couple of values (just to illustrate the idea of a function):
+```{R}
+target(1) 
+```
+
+```{R}
+target(0) 
+```
+
+```{R}
+target(-1) 
+```
+
+Next, we will program a Metropolis scheme to sample from a distribution proportional to the target
+
+```{R}
+niter = 1000
+cnt = 0
+x = rep(0,niter)
+x0  = 2 #initialize
+x[1] = x0 
+for(i in 2:niter){
+  currentx = x[i-1]
+  proposedx = rnorm(1,mean=currentx,sd=1)
+  r = target(proposedx)/target(currentx) 
+  if(runif(1)<r){
+    x[i] = proposedx     
+    cnt = cnt+ 1
+    } else {
+    x[i] = currentx  
+  }
+}
+cat("\t Acceptance =",round(cnt/niter*100,1),"% \n")
+```
+
+Note that x is a realization of a Markov Chain. We can make a few plots of x:
+
+```{R}
+plot(x)
+```
+
+```{R}
+hist(x)
+```
+
+
+## Exercise
+Write R function to implement the metropolis for the exponential function,  taking the arguments: **niter, x0, sd**:
+
+* Show on the same graph  Metropolis run for three chains with different starting values 
+* Plot histograms for choice of different sd
+* What does this target look like? What happens if the proposal sd is too small here? 
+
+<!-- $$\left(\text{e.g., }\dfrac{x^2}{3}\right)$$ -->
+
+# Metroplois-Hastings Example:
+Next, we will program a _Metropolis-Hastings_ scheme to sample from a distribution proportional to the target
+
+
+```{R}
+niter = 1000
+niter = 1000
+sdx=1
+cnt = 0
+x = rep(0,niter)
+x0  = 2 #initialize
+x[1] = x0 
+for(i in 2:niter){
+  currentx = x[i-1]
+  proposedx = rnorm(1,mean=currentx,sd=sdx)
+  r = target(proposedx)/target(currentx) 
+  r = r * dnorm(proposedx,mean=currentx,sd=sdx)/dnorm(currentx ,mean=proposedx,sd=sdx)
+  if(runif(1)<r){
+    x[i] = proposedx 
+    cnt = cnt+ 1
+    } else {
+    x[i] = currentx  
+  }
+}
+cat("\t Acceptance =",round(cnt/niter*100,1),"% \n")
+```
+
+```{R}
+plot(x)
+```
+
+```{R}
+hist(x)
+```
+
+
+*Try* changing the target function to the following
+```{R}
+target = function(x){
+  
+  return((x>0 & x <1) + (x>2 & x<3))
+}
+```
+

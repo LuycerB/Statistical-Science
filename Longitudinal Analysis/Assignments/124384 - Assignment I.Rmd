@@ -1,0 +1,161 @@
+---
+title: "Longitudinal Analysis - Assignment I"
+author: "124384 - Luycer Bosire"
+date: "5/29/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+We will use the following libraries in **R** to perform our analysis:
+
+```{r,include=FALSE}
+library(dplyr)
+library(psych)
+library(magrittr)
+library(MVN)
+library(glmnet)
+library(caret)
+library(tidyverse)
+library(tidymodels)
+library(parameters)
+library(ggplot2)
+```
+
+We import our data:
+
+```{r}
+pksm_data <- read.csv("pksm data.csv")
+dim(pksm_data)
+head(pksm_data,5)
+```
+
+Next we perform data Wrangling
+
+```{r}
+colnames(pksm_data)
+pksm_data1 <- pksm_data %>%
+  select(lying_day,strongyles,coccidia,breed,ageatvst,parity,weaned,floorraised,interaction)
+dim(pksm_data1)
+str(pksm_data1)
+```
+
+```{r}
+pksm_data1$weaned <- as.factor(pksm_data1$weaned)
+pksm_data1$interaction <- as.factor(pksm_data1$interaction)
+pksm_data1$breed <- as.factor(pksm_data1$breed)
+pksm_data1$floorraised <- as.factor(pksm_data1$floorraised)
+
+str(pksm_data1)
+
+pksm_data1 %<>% mutate_if(is.integer,as.numeric)
+str(pksm_data1)
+
+```
+Removing the response variables and variables with zero fill
+
+```{r}
+pksm_data2 <- subset(pksm_data1,select = -c(lying_day,strongyles,coccidia,breed))
+
+```
+
+We generate scatter plots to check for multi-correlation in the data
+
+```{r}
+pairs.panels(pksm_data2,
+             gap=0,
+             pch = 16,
+             cex=0.9)
+```
+
+There is a high correlation between *angeatvst* and *weaned* at 0.76. The other predictor variables have statistically insignificant correlation to induce multi-correlation as they have correlations less than 0.7.
+
+We assess for Multivariate Collinearity:
+
+```{r}
+pksm_data3 <- subset(pksm_data2,select = -c(weaned,floorraised,interaction))
+mvn(pksm_data3,mvnTest = "mardia",scale = T,multivariatePlot = "qq")
+```
+
+The chi-square Q-Q plot indicates departures from multivariate normal distribution hence the data set is not Multivariate Normal.
+
+We perform a Ridge Regression Using *lying_day* as the outcome variable:
+
+```{r}
+pksm_data4 <- subset(pksm_data1,select = -c(strongyles,coccidia,breed))
+
+set.seed(222)
+ind <- sample(2,nrow(pksm_data4),replace=T,prob = c(0.7,0.3))
+train <- pksm_data4[ind==1,]
+test <- pksm_data4[ind==2,]
+
+custom <- trainControl(method = "repeatedcv", 
+                       number = 10,
+                      repeats=5,
+                      verboseIter = F)
+
+```
+
+***The Ridge Model***
+
+```{r}
+set.seed(1234)
+ridge <- train(lying_day~.,data=pksm_data4,
+               method='glmnet', 
+               tuneGrid=expand.grid(alpha=0,
+               lambda=seq(0.0001,1,length=5)),
+               trControl=custom)
+ridge
+```
+
+We plot the results and the coefficients of the model:
+
+```{r}
+plot(ridge)
+print(ridge)
+plot(ridge$finalModel,xvar = "lambda",label = T)
+```
+
+We can observe that for higher values of $\lambda$ the RMSE increases. The RMSE sould be held lowest (1.458879) at the best value of lambda (1e-04).
+
+For values of $\lambda$ above 6, all the coefficients are more or less zero. As $\lambda$ approaches zero, all the coefficients increase in value. At the top of the plot, it shows that we have all the 5 predictor variables in the model. This proves that indeed the Ridge does not shrink coefficients of the less significant variables to zero.
+
+We perform another analysis by making the x variable the 'dev':
+
+```{r}
+plot(ridge$finalModel,xvar = "dev",label = T)
+```
+
+This results on the x axis **Fraction Deviance Explained.** Beyond 40% of the deviance (variation), there is a sudden jump and the coefficients become highly inflated and therefore above 0.4 point on the deviance, over-fitting start to take place. 
+
+We assess variable importance plot: ***Variable Importance Plot - Scale = False***
+
+```{r}
+plot(varImp(ridge,scale = F))
+```
+
+*weaned1* is the most important variable followed by *flooraised*. while the least ones are at the bottom, with low coefficient estimates.
+
+***Variable Importance Plot - Scale = True***
+
+```{r}
+plot(varImp(ridge,scale = T))
+```
+
+The scale has changed to be between 0 and 100
+
+***The OLS model***
+
+```{r}
+fit <- lm(lying_day~.,data = pksm_data4)
+model_parameters(fit)
+```
+
+The Graph of Weight against Age at Visit given the Number of Visits:
+
+```{r}
+ggplot(data=pksm_data,aes(x=ageatvst,y=weight,colour=visit_no))+geom_point(size=3,shape=14)+geom_line()+labs(x="Age at Visit",y="Weight at Visit")
+                        
+```
+
+From the graph, it is evident that both weight and age increase by the number of visits.

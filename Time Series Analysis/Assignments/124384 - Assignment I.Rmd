@@ -1,0 +1,56 @@
+---
+title: "Time Series Analysis - Assignment I"
+author: "124384 - Luycer Bosire"
+date: "6/10/2021"
+output:
+  pdf_document: default
+  html_document: default
+  '''''': default
+---
+
+#Question :Determine for strong or weak stationarity
+
+1.) A stochastic process $$y_t = w_{t-1} + w_t  
+for t = 1,2,3,\dots
+w_t \sim N(0, \sigma_w^2)$$
+
+To assess for weak stationarity we check 3 conditions:
+
+a.) constant first moment (mean)
+b.) finite second moment (variance)
+c.) covariance y(t, t+h) depends only on $$h$$ and not $$t+h$$
+
+The mean  $$E[y_t] = E[w_{t-1}] + E[w_t] = 0+0=0$$
+
+The variance $$E[(y_t - \mu)(y_t - \mu)] = var(w_{t-1}) = \sigma_w^2 + \sigma_w^2 = 2\sigma_w^2$$
+
+2.) A discrete stochastic process $$y_t :t \epsilon N$$ where $$A \sim U(3,7)$$
+
+The mean of a uniform distribution is given by $$ \frac {a+b} {2}$$ and the variance is given by $$ \frac {(b-a)^2} {12}$$
+
+Therefore, the mean $$E[y_t] = E[A] =  \frac {3+7} {2} = 5$$ and the variance $$ E[(y_t - \mu_t)^2] = \frac {(7-3)^2} {2} = \frac {16} {12} =  \frac {4} {3}$$.
+
+The AutoCovariance is given by: 
+$$cov(y_{t1},y_{t2}) = E[(y_{t1} - \mu_t)(y_{t2} - \mu_t)] = cov(y_{t2},y_{t1}) = cov(A,A) = var(A) = \frac {4} {3}$$.
+
+The autocovariance function of the process A does not rely on t, hence the function is strongly stationary.
+
+3.) A discrete stochastic process $$y_t :t \epsilon N, y_t = tA$$ where $$A \sim U(3,7)$$
+
+The mean of a uniform distribution is given by $$ \frac {a+b} {2}$$ and the variance is given by $$ \frac {(b-a)^2} {12}$$
+
+Therefore, the mean $$E[y_t] = tE[A] = t(  \frac {3+7} {2}) = 5t$$ and the variance $$ E[(y_t - \mu_t)^2] = var(tA) = t^2 var(A) = t^2 ( \frac {(7-3)^2} {2}) = \frac {16t^2} {12} =  \frac {4t^2} {3}$$.
+
+The AutoCovariance is given by: 
+$$cov(y_{t1},y_{t2}) = E[(y_{t1} - \mu_t)(y_{t2} - \mu_t)] = cov(y_{t2},y_{t1}) = cov(A,A) = var(A) = \frac {4t^2} {3}$$.
+
+The auto-covariance function of the process A relies on t, hence the function is weakly stationary.
+
+4.) A stochastic process where $$y_0 = \sigma \le \infty , y_t = y_{t-1} + w_t$$
+
+
+$$\text{given that} \ y_0=\delta  \\ \text{then} \ y_t=\delta+y_{t-1} + w_t  $$
+We compute the mean:
+$$ E(y_t)=E[\delta + y_{t-1}+w_t] =E(\delta)+E(y_{t-1}) + E(w_t) = \delta+y_{t-1}+0 =\delta+y_{t-1}$$
+
+The mean of the stochastic process where $$y_0 = \sigma \le \infty , y_t = y_{t-1} + w_t$$ depends on time t. Therefore, we conclude that the process not stationary.

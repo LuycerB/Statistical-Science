@@ -1,0 +1,185 @@
+---
+title: "Computational Analysis Assignment I"
+author: "124384 Luycer Bosire"
+date: "2/2/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question One
+
+a. Use the file “Women.txt” from the course website and read this into R. What is the dimension of the data you have just read in R?
+  
+#Reading the .txt file into R,
+
+```{r, echo=TRUE}
+women<- read.table("Women.txt", header=TRUE)
+```
+
+Next, check the dimension of this table. We may also go further ahead and show the first and last three items from the table. We’ll realise that the table has 17 rows and 3 columns. This data can be easily viewed
+
+```{r, echo=TRUE}
+dim(women)
+head(women,3)
+tail(women,3)
+View(women)
+```
+
+b. Use the file “Women.txt” from the course website and read this into R. A new woman joined the study, she is 66” tall, 165lbs and 34 years. Append this information to your data.
+
+```{r, echo=TRUE}
+new.woman<-data.frame(height="66",weight="165",age="34")
+women1<-rbind(women,new.woman)
+women1
+```
+
+c. Use the file “Women.txt” from the course website and read this into R. How many women have a weight under 140?
+
+```{r, echo=TRUE}
+with(women,women$weight<140) #From this, It returns the first 9 values as less than 140 and the rest as greater than. 
+```
+
+We can obtain similar results by suing the below function, as the above one is quite tedious ovr manually counting the TRUE values from the output;
+
+```{r, echo=TRUE}
+sum(women$weight<140)
+```
+
+d. Use the file “Women.txt” from the course website and read this into R. There is a correction to the woman in row D, her age should be 39. Change the age in row D to 39. You’re then required to sort your data by weight and store the results in a new data set.
+
+```{r, echo=TRUE}
+women<- read.table("Women.txt", header=TRUE)
+women2<-replace(women$age,4,39)
+women2
+```
+
+e. Use apply to generate a summary report, with the mean, median, sd of height, weight and age.
+
+The question requires the mean,median and standard deviation using apply function which is mainly used to avoid loops. It takes three arguments; x-dataframe Margin-1 is for row operations and 2 column operations FUN- the function to be applied,e.g mean,median and sd
+
+Before applying the function, there is need to omit incomplete cases if they exist.
+
+```{r, echo=TRUE}
+attach(women)
+women2<-na.omit(women)
+mean<-apply(women2,2,FUN = ("mean"))
+median<-apply(women2,2,FUN="median")
+sd<-apply(women2,2,FUN="sd")
+```
+
+Another approach tosolving this problem;
+
+```{r, echo=TRUE}
+attach(women)
+MySummary <-function(df){
+  
+  ColMeans<-apply(df,2,mean,na.rm=TRUE)
+  ColMedians<-apply(df,2,median,na.rm=TRUE)
+  ColSD<-apply(df,2,sd,na.rm=TRUE)
+  
+  res<-rbind(mean=ColMeans,median=ColMedians,sd=ColSD)
+  res<-apply(res,2,signig, digits=3)
+  return(res)
+}
+
+MySummary (women)
+```
+
+f. Use the apply function to get the mean, median and sd of the columns and create a matrix with row names, mean, median and sd.
+
+```{r, echo=TRUE}
+t(data.frame(mean,median,sd))
+```
+
+g. Write a function to calculate BMI.
+
+```{r, echo=TRUE}
+attach(women)
+
+BMI <- function(height,weight){
+  (0.45455*weight/(.0254*height)^2)
+  }
+Women_BMI<- BMI(height,weight)
+Women_BMI
+```
+Alternative code;
+```{r, echo=TRUE}
+BMI<- function(weight, height){
+  BMI<-(weight/height^2)*703
+  BMI<-round(BMI,2)
+  return(BMI)
+}
+BMI(weight = 150, height = 65)
+```
+h. Do the women have a BMI within a recommended range for their height (Normal =18.5-24.9)? You require an R code to answer this.
+
+#Using the sum function and logic and (&) operator to get the count of values within the normal range.
+
+```{r, echo=TRUE}
+sum(Women_BMI>18.5 & Women_BMI<24.90)
+```
+Alternative code;
+````{r, echo=TRUE}
+for(i in 1:nrow(women)){
+  bmiRes<- bmi(women$weight[i], women$height[i])
+  out<-ifelse(bmiRes<18.5|bmiRes>24.9, "Not Normal","Normal")
+}
+````
+#This means all the 17 women are within the normal range.
+
+Question 2
+a. You’re required to load the library “ape” and then read the data bank as follows>bank<-table(read.GenBank(c(“X94991.1”), as.character=TRUE)) You’re then required to produce a pie char of the data bank in both 2D and 3D. Label your pie chart appropriately.
+
+```{r, echo=TRUE}
+library(ape)
+library(plotrix)
+bank<-table(read.GenBank(c("X94991.1"), as.character=TRUE))
+bank
+
+colors = c('#4286f4','#bb3af2','#ed2f52','#efc023')
+labels=c("A","B","C","D")
+pie(bank, labels, main='GenBank', col=colors, init.angle=180, clockwise=TRUE)
+
+colors = c('#4286f4','#bb3af2','#ed2f52','#efc023')
+labels=c("A","B","C","D")
+pie3D(bank, labels=labels, explode=0.1, height=0.05, main='Genbank 3D Piechart', col=colors)
+```
+
+b. Use the file “gapminder.csv” from the course website and read this into R. You’re then required to perform the following analysis:
+```{r, echo=TRUE}
+data_set<-read.csv("gapminder.csv")
+str(data_set)
+head(data_set)
+```
+
+c. Obtain data set for only the year 1982
+
+```{r, echo=TRUE}
+data_1982<- subset(data_set,subset = year==1982)
+head(data_1982)
+str(data_1982)
+```
+d. Obtain data set for the American countries in 1997
+
+```{r, echo=TRUE}
+data_America<-subset(data_set,continent == "Americas"& year==1997)
+head(data_America)
+```
+
+e. Add a column to the data set loaded in R with the new column being gdp which is computed as gdp=popgdpPercap*
+
+```{r, echo=TRUE}
+attach(data_set)
+GDP<-function(pop,gdpPercap){pop*gdpPercap}
+gdp<-GDP(pop,gdpPercap)
+head(gdp)
+
+data_set_1<- cbind(data_set,gdp)
+str(data_set_1)
+```

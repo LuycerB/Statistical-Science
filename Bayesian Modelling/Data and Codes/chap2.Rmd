@@ -1,0 +1,199 @@
+---
+title: "MLE Estimation"
+author: "SM Mwalili"
+date: "1/21/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+  # Overview
+  
+  This vignette introduces the idea of "conjugate prior" distributions for Bayesian inference for a continuous parameter. You should be familiar with
+[Bayesian inference for a binomial proportion](bayes_beta_binomial.html).
+
+
+# Conjugate Priors for binomial proportion
+
+## Background 
+
+In [this example](bayes_beta_binomial.html)  we considered the following problem. 
+
+Suppose we sample 100 elephants from a population, and measure their DNA at a location in their genome ("locus") where there are two types ("alleles"), 
+which it is convenient to label $a$ and $b$. 
+
+In my sample, I observe that 30 of the elephants have the "$a$" allele and 70 have the "$b$" allele. What can I say about the frequency, $\theta$, of the "$a$" allele in the population?
+  
+  The example showed how to compute the posterior distribution for $\theta$, using a *uniform prior distribution*. We saw that, conveniently, the posterior distribution for $\theta$ is a Beta distribution. 
+
+Here we generalize this calculation to the case where the prior distribution on $\theta$ is a Beta distribution. We will find that, in this case, the posterior distribution on $\theta$ is again a Beta distribution. The property where the posterior distribution comes from the same family as the prior distribution is very convenient, and so has a special name: it is called "conjugacy". We say "The Beta distribution is the conjugate prior distribution for the binomial proportion".
+
+## Details
+
+As before we use Bayes Theorem which we can write in words as
+$$\text{posterior} \propto 
+\text{likelihood} \times \text{prior},$$
+  or in mathematical notation as
+$$ p(\theta | D) \propto p(D | \theta) p(\theta),$$
+  where $D$ denotes the observed data.
+
+In this case, the likelihood $p(D | \theta)$ is given by
+$$p(D | \theta) \propto \theta^{30} (1-\theta)^{70}$$
+  
+If our prior distribution on $\theta$ is a Beta distribution, say Beta$(\alpha,\beta)$,
+then the prior density $p(\theta)$ is 
+$$p(\theta) \propto \theta^{\alpha-1}(1-\theta)^{\beta-1} \qquad (\theta \in [0,1]).$$
+  
+  Combining these two we get:
+  $$p(\theta | D) \propto \theta^{30} (1-\theta)^{70} \theta^{\alpha-1} (1-\theta)^{\beta-1}\\
+\propto \theta^{30+\alpha-1}(1-\theta)^{70+\beta-1}$$
+  
+At this point we again apply the "trick" of recognizing this density as the density of a Beta distribution - specifically, the Beta distribution with parameters $(30+\alpha,70+\beta)$.
+
+
+## Generalization
+
+Of course, there is nothing special about the 30 "$a$" alleles and 70 "$b$" alleles we observed here. Suppose we observed $x$ of the "$a$" allele and $n-x$ of the "$b$" allele. Then the likelihood becomes
+$$p(D | \theta) \propto \theta^{x} (1-\theta)^{n-x},$$
+  and you should be able to show (Exercise) that the posterior is 
+$$\theta|D \sim \text{Beta}(x+\alpha, n-x+\beta).$$ 
+  
+## R coding for the Binomail Example  
+### Likelihood 
+
+```{r}
+
+# Plot likelihood and log-likelihood of binomial example
+
+# Specify first a grid of theta values upon which the likelihood will be determined
+
+theta <- seq(0.001,0.999,0.001)
+
+# There are 30 successes out of 100 experiments
+x <- 30
+n <- 100
+
+# Explicit computation of likelihood and log-likelihood
+
+binom <- choose(n,x)
+lik <- binom*theta**x*(1-theta)**(n-x)
+llik <- log(lik)
+
+# Determine MLE and (log)-likelihood value at MLE
+
+mle <- x/n
+print(mle)
+likmle <- binom*mle**x*(1-mle)**(n-x)
+llikmle <- log(likmle)
+
+# Plot likelihood and log-likelihood
+# par statements imply 2 square figures in one graph (2 rows, 1 column)
+
+par(mfrow=c(1,2), pty="s")
+
+# Plot statement
+
+plot(theta,lik,xlab=expression(theta) ,ylab="Likelihood",type="n",main="",
+bty="l",cex.lab=1.5,cex=1.2,cex.axis=1.3)
+lines(theta,lik,col="red",lwd=3)
+arrows(mle,likmle,mle,0,col="red")
+text(0.1,0.25,"(a)",cex=1.4)
+plot(theta,llik,xlab=expression(theta),ylab="Log-likelihood",type="n",
+main="",bty="l",cex.lab=1.5,cex=1.2,cex.axis=1.3)
+text(0.1,-3,"(b)",cex=1.4)
+lines(theta,llik,col="blue",lwd=3)
+arrows(mle,llikmle,mle,min(llik),col="blue")
+```
+
+## Combination prior & likelihood for binomial example
+
+```{r}
+# Now only 1 figure
+# Size figure is maximized
+
+par(mfrow=c(1,1))
+par(pty="m")
+
+# Grid of theta values
+
+n <- 100
+x <- 30
+theta <- seq(0,1.,0.001)
+
+# Prior based on ECASS 2 data
+# Historical binomial likelihood turned into a beta density
+
+alpha <-10
+beta <- 1
+# Parameters of beta density
+
+betatheta <- dbeta(theta,alpha,beta)
+
+# expression(theta) produces a Greek symbol
+
+plot(theta, betatheta,xlab=expression(theta),ylab="",type="n",ylim=c(0,18),
+     bty="l",cex.lab=1.8)
+lines(theta,betatheta,lwd=2,col= "red2")
+
+# Likelihood of ECASS 3 study
+
+p <- x 
+q <- n - x
+
+lik <- dbeta(theta,p,q)
+lines(theta,lik,lwd=2,col="green")
+
+# Posterior combining ECASS 2 prior with ECASS 3 likelihood
+alpha2 <- alpha+x
+beta2 <- beta +n-x
+betatheta <- dbeta(theta,alpha2,beta2)
+lines(theta, betatheta,lwd=2,col="blue")
+legend(x="topright",c("Prior","Likelihood","Posterior"),lty=1,col=c("red2","green","blue"),bty="n",lwd=2)
+```
+
+
+<br>
+
+#### *$\rightarrow$Try it yourself*
+
+In the cell below, write a code which calls the `Binomial_post(alpha,beta)` for any choice of alpha and beta.
+
+```{r}
+#function
+#
+```
+
+
+<br>
+
+#### *$\rightarrow$Try it yourself*
+In the cell below, write a function implementing the `Binomial_post(alpha,beta)` function looping over alpha and beta values. Plot the results on the same axis. 
+
+```{r}
+#
+
+#
+```
+
+
+<br>
+
+## Summary
+  
+When doing Bayesian inference for a binomial proportion, $\theta$, if the prior distribution is a Beta distribution then the posterior distribution is also Beta.
+
+We say "the Beta distribution is the conjugate prior for a binomial proportion".
+
+
+# Exercise
+
+Show that the Gamma distribution is the conjugate prior for a Poisson mean.
+
+That is, 
+suppose we have observations $X$ that are Poisson distributed,
+$X \sim Poi(\mu)$. Assume that your prior distribution on $\mu$ is a Gamma
+distribution with parameters $n$ and $\lambda$. Show that the posterior distribution on $\mu$ is also a Gamma distribution. 
+
+Hint: you should take the following steps. 1. write down the likelihood $p(X|\mu)$ for $\mu$ (look up the Poisson distribution if you cannot remember it). 2. Write down the prior density for $\mu$ (look up the density of a Gamma distribution if you cannot remember it). 3. Multiply them together to obtain the posterior density (up to a constant of proportionality), and notice that it has the same form as the gamma distribution. 
+
+

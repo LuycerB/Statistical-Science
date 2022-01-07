@@ -1,0 +1,346 @@
+---
+title: '**STRATHMORE UNIVERSITY**'
+author: "124384 - Luycer Bosire & 135214 - Ruth Katam"
+date: "10/08/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+subtitle: "| INSTITUTE OF MATHEMATICAL SCIENCES \n| MASTER IN STATISTICAL SCIENCES
+  \n| LONGITUDINAL DATA ANALYSIS\n| YEAR 1 SEMESTER III\n| CAT II\n"
+---
+
+# Question 1 (20 Marks)
+a. Repeated measures data and longitudinal data are used extensively in various fields of science. Describe each design, providing any features that distinguish the two designs.
+
+-Repeated Measures: It is an experimental design where each person in the experiment is tested for multiple conditions overtime or under different conditions overtime.
+-Longitudinal design: A group of individuals is taken and a study on something specific is done over a period of time. 
+The feature that distinguishes the two designs is that longitudinal measures a specific item over the time period while Repeated Measure take into account multiple conditions on the same observation over the period.
+
+b. Explain when and why researchers would prefer longitudinal studies over cross-sectional studies.
+
+Both longitudinal and cross-sectional studies measure the changes over time in a particular outcome of interest. A researcher would prefer longitudinal study over cross-sectional when the researcher wishes to use the same sample over the years to conduct the study. Longitudinal study is good because the researcher will be able to measure the outcome taken at each point of interest on a single sample.
+
+Other advantages of longitudinal studies are:
+>+ _Economizes on subjects._
+>+ _Subjects serve as own control._
+>+ _Between-subject variation excluded from error._
+>+ _Can provide more efficient estimators than cross-sectional designs with same number and pattern of observations._
+>+ _Can separate aging effects (changes over time within individuals) from cohort effects (differences between subjects at baseline)) cross-sectional design can’t do this._
+>+ _Can provide information about individual change._
+
+c. Consider the linear mixed effects model (in matrix notation), $$y=X\beta+Zu+\epsilon$$,  expressed two level hierarchical model:
+$$y|u{\sim}N(X\beta+Zu,R) \\ u \sim N(0,R)$$
+
+## Theory of linear mixed models.
+
+Where y  is a $$N*1$$ column vector, the outcome variable; X is a $$N*p$$ matrix of the p predictor variables;$$\beta$$  is a $$p*1$$ column vector of the fixed-effects regression coefficients (the $$\beta s$$); Z is the $$N*qJ$$  design matrix for the q  random effects and J groups; u  is a $$qJ*1$$   vector of q  random effects (the random complement to the fixed $$\beta$$ for J groups; and $$\epsilon$$  is a $$N*1$$  column vector of the residuals, that part of y  that is not explained by the model, $$X\beta + Zu$$.
+
+i. Re-write the marginal model version of this model.
+
+The general linear mixed model implies the marginal model:
+$$Y_i \sim N(X_i\beta, Z_iDZ_i^` + \Sigma_i)$$
+The marginal model for the linear mixed effects model in matrix notation therefore is:
+$$(y|\beta; u = u)\sim N(X\beta + Zu, R)$$
+
+ii.Derive an expression for the Maximum Likelihood Estimator or weighted Least Squares Estimator of  $$\beta$$. 
+
+## Solution
+Let $$y = X\beta +\epsilon \ \text {where} \ \epsilon = Zu + e$$
+
+$${E[\epsilon] = E[Zu +e] = ZE[u]+E[e] = X\beta \\  
+Var[\epsilon] = Var [Zu+e]=ZVar[u]Z^{T} + Var[e] = ZGZ^T + \Sigma}$$
+
+such that $$y\sim MVN(X\beta, V) \ \text{where} \ V = ZGZ^T + \Sigma$$.  
+
+Under these circumstances, the MLE for $$\hat\beta$$ is:  
+$$\hat\beta = (X^{T}V^{-1}X)^{-1} X^{T}V^{-1}y\sim MVN(\beta,(X^{T}V^{-1} X)^{-1})$$
+
+iii. Derive an expression for the best linear unbiased estimator of u.
+
+Given the model specifications, the joint distribution of y and u is:
+
+$$\mathbf \displaystyle \begin{bmatrix} y \\ u \end{bmatrix} \sim MVN  \displaystyle \begin{bmatrix}X\beta \\ 0
+\end{bmatrix}, \begin{bmatrix} V & ZG \\ GZ^T & G
+\end{bmatrix}$$
+
+From the properties of multivariate normal distribution, we have that:
+$$E[u |y ]= E[u ] +Cov[u, y^T ]Var ^{-1} [ y]( y-E[ y]) \\
+=GZ^T V^{-1}(y-X\beta) \\
+= GZ^T (ZGZ^T + \Sigma)^{-1}(y-X\beta)$$
+The fixed effects $$\beta$$ are replaced by their estimates,so that predictions are made based on the expression:
+$$u = GZ^T (ZGZ^T + \Sigma)^{-1}(y-X\hat\beta)$$
+
+The solution$$\hat\beta $$ and $$\hat u$$ discussed before require $$V^{-1}$$. Henderson (1959) presents the mixed model equations (MME) to estimate our parameters without the need for computing $$V^{-1}$$.
+
+The MME are derived by maximizing the parameters the joint density of y and u expressed as:
+
+$$\displaystyle {p(y,u | \beta,G,\Sigma)∝ | Σ |^{−1/2}|G |^{−1/2}×exp { −1/2(y − Xβ −Zu)^T Σ^{−1}(y − Xβ −Zu)− 1/2u^TG^{−1}u}}$$
+The logarithm of this function is:
+
+$$\displaystyle ℓ =log[p(y,u| \beta,G,\Sigma)] ∝ |\Sigma| + |G| +(y-x\beta-Zu) + u^TG^{-1}u \\
+= |\Sigma| + |G| + y^T\Sigma^{-1}y - 2y^T\Sigma^{-1}Zu +  \beta X^T \Sigma^{-1}Zu+ u^T Z^T \Sigma^{-1} + u^TG^{-1}u$$
+
+The derivatives of ℓ regarding $$\beta$$ and u are:
+
+$$\mathbf \displaystyle \begin{bmatrix} dℓ/d\beta \\ dℓ/du \end{bmatrix} =  \displaystyle \begin{bmatrix}X^T\Sigma^{-1}y-X^T\Sigma^{-1}X\beta - X^T\Sigma^{-1}Zu \\Z^T\Sigma^{-1}y-Z^T\Sigma^{-1}X\beta - Z^T\Sigma^{-1}Zu -G^{-1}u\end{bmatrix}$$
+Equating them to zero and solving for them can be expressed as:
+$$\mathbf  \displaystyle \begin{bmatrix} X^T\Sigma^{-1}X & X^T\Sigma^{-1}Z  \\ Z^T\Sigma^{-1}X & Z^T\Sigma^{-1}Z+G^{-1}\end{bmatrix} \begin{bmatrix} \hat\beta  \\ \hat u\end{bmatrix} = \begin{bmatrix} X^T\Sigma^{-1}y \\ X^T\Sigma^{-1}y\end{bmatrix}$$
+known as the mixed model equations.  
+
+We solve the equation to obtain:
+
+$$\hat u = GZ^T (ZGZ^T + \Sigma)^{-1}(y-X\hat\beta)$$ which is the best linear unbiased predictor (BLUP) of u.
+
+# Question 2: Consider the sleep deprivation data, *sleepstudy*, in the R library *lme4*. In a sleep deprivation study, the average reaction time per day for subjects was measured. On day 0 the subjects had their normal amount of sleep. Starting that night they were restricted to 3 hours of sleep per night. The observations represent the average reaction time on a series of tests given each day (for 10 days) to each of the 18 subjects.  
+Outcome: Reaction; The Average reaction time (ms)
+Predictors: Days; Number of days of sleep deprivation and Subject; Subject number on which the observation was made.  
+
+a. Give the two-stage representations of the random-intercept and the random coefficients models that can be used to model this data.  
+
+```{r}
+library(lme4)
+data("sleepstudy")
+str(sleepstudy)
+require(lattice)
+xyplot(Reaction ~ Days | Subject, sleepstudy, type = c("g","p","r"),
+       index = function(x,y) coef(lm(y ~ x))[1],
+       xlab = "Days of sleep deprivation",
+       ylab = "Average reaction time (ms)", aspect = "xy")
+```
+Each subject’s reaction time increases approximately linearly with the number of sleepdeprived days. However, subjects also appear to vary in the slopes and intercepts of these relationships, which suggests a model with random slopes and intercepts.
+
+```{r}
+fm1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+summary(fm1)
+```
+
+b. For each model in part (a), provide a single expression of the linear mixed effects model, clearly showing the fixed and random effects, with all relevant distributional assumptions provided. 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr
+ Subject  (Intercept) 612.10   24.741       
+          Days         35.07    5.922   0.07
+ Residual             654.94   25.592       
+Number of obs: 180, groups:  Subject, 18
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)  251.405      6.825  36.838
+Days          10.467      1.546   6.771
+
+
+The random effects section of the model display indicates that there will be a random effect for the intercept and a random effect for the slope with respect to Days at each levelof the subject and further an unconditional distribution of these random effects which allows for correlation of the random effects for the same subject.
+
+c. Fit random-intercept and random-coefficients models to this data then:  
+
+We fit a mixed-effects model for the coefficients (intercept and slope)$$[\beta_1,\beta_2]'$$ which represent the intercept and slope for the populations and random effects $$b_1 \dots, \ i=1,\dots,18$$ which are the deviations in intercept and slope associated with i. The random effects vector b consisits of 18 intercept effects followed by the 18 slope effects.
+
+```{r}
+fm1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+summary(fm1)
+```
+The term Days in the formula generates a model matrix X with two columns, the intercept column and the numeric Days column. (The intercept is included unless suppressed.) The term (Days|Subject) generates a vector-valued random effect (intercept and slope) for each of the 18 levels of the Subject factor
+
+We may use double-bar notation to fit a model that excludes a correlation parameter:
+
+```{r}
+fm2 <- lmer(Reaction ~ Days + (Days || Subject), sleepstudy)
+summary(fm2)
+```
+ Next we fit a model with uncorrelated random effects:
+ 
+```{r}
+fm3 <- lmer(Reaction ~ Days + (1 | Subject)+ (0 + Days | Subject), sleepstudy)
+summary(fm3)
+```
+
+i. Compute the intra-class correlation coefficient for the random intercept model and comment on it. 
+
+The estimated within-subject correlation (from the fm1 model) of the random effect for the intercept and the random effect for the slope is 0.081. This implies that there is little evidence of a systematic relationship between these quantities.
+
+ii. For the random slope model, determine the proportion of variance attributable to each variance component and comment on your results.
+
+We fit a model with and without the variance component and compare the fit quality. The likelihood ratio is a reasonable test statistic for the comparison but the “asymptotic” reference distribution of a $$χ^2$$ does not apply because the parameter value being tested is on the boundary.The p-value computed using the $$χ^2$$ reference distribution should be conservative (i.e. greater than the p-value that would be obtained through simulation)
+
+```{r}
+fm4 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
+anova(fm4, fm3)
+```
+
+iii. Carryout a Likelihood ratio test and determine the best fitting model. Comment on the relationship between the outcome and predictor in the model.
+
+Comparing the two models:
+
+```{r}
+anova(fm1,fm3)
+```
+
+Because the large p-value indicates that we would not reject fm3 in favor of fm1, we prefer the more parsimonious fm3.
+
+iv. What is the significance of the correlation term given in the random effects part of results for the random-coefficients model?  
+
+The correlation term depicts evidence of a systematic relationship between the intercept and the random effect for the slope. This implies that observing a subject’s initial reaction time does not give us much information for predicting whether their reaction time will be strongly affected by each day of sleep deprivation or not.
+
+# Question 3 (20 Marks)  
+a)	Describe each of the following covariance pattern models, explaining how they arise and how they can be employed in longitudinal data analysis:
+
+Definition: Covariance pattern model  
+The CPM for the $$n_i*1$$ response vector y for individual i can be written as
+$$y_i = X_i \beta + \epsilon_i$$. $$y_i$$ is the $$n_i * 1$$ dependent variable vector for individual i, $$X_i$$ is the with $$i = 1,...,N$$ individuals and $$j = 1,...,n_i$$ observations for individual i.
+
+i)	Compound Symmetry Structure  
+This is a simple form of the variance covariance matrix which specifies equal variances and covariances. In matrix form it is expressed as:
+
+In longitudinal data analysis, the compound symmetry covariance structure can be specified for the R-sided matrix.  
+The compound symmetry variance-covariance structure is the simplest and the most parsimonious pattern model designed for longitudinal analysis. A linear regression model including a residual variance-covariance matrix of CS can yield statistically efficient and consistent parameter estimates.  
+
+ii)	First-Order Auto-regressive Structure  
+Also known as a first order Markov process, this method is extensively used in time series analysis. It has homogenous variances, pairs of repeated measures separated by the one measurement occasion e.g laged by 1 are correlated equally. Repeated measures with larger lags are correlated to a lesser degree based on an exponential function of the one-lag correlation. Example repeated measures that are one lag apart (e.g., Time 1 and Time 2) are correlated at some estimated value $\rho$, and repeated measures that are two lags apart (e.g., Time 1 and Time 3) would be correlated at $\rho^2$.
+It is used for diminishing lags between timepoints. In LDA its used when there are many repeated measures and the spacing between measurement occasions is equal or nearly equal.
+The covariances for timepoints j and j'
+$$\sigma_{jj'} = \sigma^2\rho^{(j-j')}$$
+where $$\rho$$ is the AR(1) parameter and $$\sigma^2$$is the error variance.
+
+The structure in matrix formulation is given as:
+
+
+ iii) Toeplitz or Banded Structure:
+It is used for diminishing lags between timeepoints, but not as rigid as AR(1). Each lag has its own correlation. 
+Similar to the first-order autoregressive structure, all measures separated by one measurement occasion are equally correlated. However, for measures lagged by two, the Toeplitz structure estimates a separate correlation rather than simply squaring the lag 1 correlation.  Toeplitz structure does not require that the change in correlation follow a specific function of the lag 1 correlation. 
+In LDA it is used when their is a moderate number of repeated measures but correlations are not expected to decrease exponentially over time
+
+  iv) Unstructured Form
+It assume a general unstructured form that allows all of the parameters of the variance-covariance matrix to be different every element is uniquely estimated. 
+IN LDA  it is typically reserved for very few measurement occasions or when the measurement occasions have an unorthodox structure.
+
+b) In a clinical trial of patients suffering from epilepsy, patients were randomized to receive either a placebo or the drug progabide, in addition to standard therapy. A baseline count of the number of epilepsy seizures in an 8-week period prior to randomization was obtained. In addition, counts of the number of epilepsy seizures in each of four successive 2-week (post-baseline) treatment periods were obtained. The goal of the analysis was to make a comparison between the two treatment groups in terms of changes in the rates of epileptic seizures throughout the duration of the study. 
+The raw data (epilepsy) for this question are found in the R library HSAUR3.
+  i) Fit a random intercept model within the generalized linear mixed effects paradigm to this data set. Present the results of the analysis using an appropriate summary table. [Hint: Use lme4 and specify the poisson family
+
+We start by calculating the means and variances of the number of seizures for all treatment and the period interactions
+```{r,echo=FALSE,include=FALSE}
+#library used
+library(lme4)
+```
+
+
+```{r,echo=FALSE}
+library(HSAUR3)
+data("epilepsy", package = "HSAUR3")
+itp <- interaction(epilepsy$treatment, epilepsy$period)
+per <- rep(log(2),nrow(epilepsy))
+epilepsy$period<- as.numeric(epilepsy$period)
+tapply(epilepsy$seizure.rate, itp, mean)
+```
+
+```{r,echo=FALSE}
+tapply(epilepsy$seizure.rate, itp, var)
+```
+Some of the variances are considerably larger than the corresponding means,which for a Poisson variable may suggest that over-dispersion may be a problem.
+
+Next we fit a generalized linear mixed model:
+
+```{r,echo=FALSE,warning=FALSE,include=FALSE}
+ePY_lmer <- glmer(seizure.rate ~ base + treatment + age + period + (1|subject),
+                  family = poisson(), data = epilepsy)
+summary(ePY_lmer)
+```
+***
+
+ii) Using a likelihood ratio test compare the random intercept model and the random coefficients model fitted within the generalized linear mixed effects paradigm.
+```{r,echo=FALSE,include=FALSE}
+library(lmerTest)
+```
+
+Random Intercept model
+```{r,echo=FALSE,include=FALSE}
+#Loglikelihood
+epy_lmer <- lmer(seizure.rate ~ base + treatment + age + period + (1 | subject)
+              , data = epilepsy,REML = TRUE)
+summary(epy_lmer)
+```
+
+
+Random coefficients model
+```{r}
+
+```
+
+We perform the likelihood ratio test:
+```{r}
+rand(epy_lmer)
+```
+***Interpret the likelihood ratio obtained.
+
+iii) Fit generalized estimating equations to this data with unstructured, exchangeable, independent and AR correlation structures. For your best fitting model discuss the meaning of your findings. Comment on how you arrived at the best fitting model.
+
+```{r,echo=FALSE,include=FALSE}
+#WIll use gee to fit the models
+library(gee)
+per <- rep(log(2),nrow(epilepsy))
+fm <- seizure.rate ~ base + age + treatment + offset(per)
+```
+
+
+```{r,echo=FALSE,include=FALSE}
+library(geepack)
+gee_unstructured = geeglm(fm, data = epilepsy, id =subject , family = poisson, corstr = "unstructured")
+summary(gee_unstructured)
+```
+
+
+
+```{r,echo=FALSE,include=FALSE}
+gee_exchangeable = geeglm(fm, data = epilepsy, id =subject , family = poisson, corstr = "exchangeable")
+summary(gee_exchangeable)
+```
+
+
+```{r,echo=FALSE,include=FALSE}
+gee_independence = geeglm(fm, data = epilepsy, id =subject , family = poisson, corstr = "independence")
+summary(gee_independence)
+```
+
+
+
+```{r,echo=FALSE,include=FALSE}
+gee_ar1 = geeglm(fm, data = epilepsy, id =subject , family = poisson, corstr = "ar1")
+summary(gee_ar1)
+```
+
+To compare the models we use QIC to select a good model in the generalized linear model. QIC is used to select a correlation structure. It compares models that have the same working correlation matrix and QIC form but varying mean specifications.Models with smaller values of QIC, CIC, QICu, or QICC are preferred.CIC has been suggested as a more robust alternative to QIC when the model for the mean may not fit the data very well and when models with different correlation structures are compared.
+```{r}
+library(geepack)
+model_unstructured <- QIC(gee_unstructured)
+```
+
+```{r}
+model_exchangeable<- QIC(gee_exchangeable)
+```
+
+```{r}
+model_independence <- QIC(gee_independence)
+```
+
+```{r}
+model_ar1 <- QIC(gee_ar1)
+```
+
+```{r}
+model_sum <- data.frame(model_unstructured,model_exchangeable,model_independence,model_ar1)
+```
+
+
+```{r}
+model_sum%>% knitr::kable(digits = 2, "simple", caption = "GEE MODEL SUMMARY")
+```
+Based on the CIC values from the result above, we prefer the unstructured correlation structure model as it has the smalled CIC value at 2.8.
+
+# References
+https://si.biostat.washington.edu/sites/default/files/modules/Seattle-SISG-18-MM-Lecture03.pdf  
+https://www.mathworks.com/help/stats/estimating-parameters-in-linear-mixed-effects-models.html  
+Pan, W. (2001). Akaike's information criterion in generalized estimating equations. Biometrics, 57, 120-125.  
+Hardin, J.W. and Hilbe, J.M. (2012). Generalized Estimating Equations, 2nd Edition, Chapman and Hall/CRC: New York.   
+Hin, L.-Y. and Wang, Y-G. (2009). Working-correlation-structure identification in generalized estimating equations, Statistics in Medicine 28: 642-658.   
+Thall, P.F. and Vail, S.C. (1990). Some Covariance Models for Longitudinal Count Data with Overdispersion. Biometrics, 46, 657-671.  

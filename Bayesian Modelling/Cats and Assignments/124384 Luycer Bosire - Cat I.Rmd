@@ -1,0 +1,183 @@
+---
+title: "Bayesian Cat I"
+author: "124384 Luycer Bosire"
+date: "2/6/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Question 1: Single parameter poisson**
+
+Consider the count of airline crashes per year over a 10-year period form 1976 to 1985:
+  
+    y <- c(24,25,31,31,22,21,26,20,16,22)
+    n<- length(y)
+    n
+    bar_x<- mean(y)
+    bar_x
+
+**_a. Show that the Gamma distribution is the conjugate prior for a Poisson mean._**
+
+Solution in the steps below; 
+
+1. write down the likelihood $p(X|\lambda)$ for $\lambda$. 
+
+The pdf and likelihood function of Poisson Distribution with parameter $\lambda$ is given by;
+
+  $$ P(x| \lambda) = \frac {e^{-\lambda}\lambda^{x}}{x!} $$
+  
+$$ L(\lambda; \pmb x) = \frac {e^{-n\lambda}\lambda^{n\bar x}}{\prod_{i=1}^nx_i!}\propto e^{-n\lambda}\lambda^{n\bar x} $$
+
+2. Write down the prior density for $\lambda$.
+
+The prior density Gamma with parameter $$n, \lambda$$ is given by;
+
+$$ P(x |\lambda)= \frac {\beta^\alpha} {\Gamma(\alpha)} {\lambda^{(\alpha-1)}} {e^ {(-\lambda\beta)}} $$
+
+Ignoring the constant term:
+$$P(\lambda)=\lambda^{\alpha-1}e^{-\beta\lambda}$$
+3. Multiply them together to obtain the posterior density, and notice that it has the same form as the gamma distribution.
+
+Using Bayes Rule
+
+$$\text{posterior} \propto \text{likelihood} \times \text{prior},$$
+That is
+$$P(\lambda|x)=P(x|\lambda) \times P(\lambda)$$
+
+Therefore:
+$$P(\lambda|x)=e^{-n\lambda}\lambda^{n\bar x}\times\lambda^{\alpha-1}e^{-\beta\lambda}$$
+$$P(\lambda|x)=\lambda^{n\bar x+\alpha-1}e^{-\lambda(n+\beta)}$$
+Thus we can notice that the posterior takes a Gamma form:
+$$Post(\lambda|x)∼Gamma(\alpha^*,\beta^*)$$
+Where
+$$\alpha^*=n\bar x+\alpha $$
+$$\beta^*=n+\beta$$
+
+**_b. Show graphics of the resulting posterior distribution for choices of various gamma priors_**
+
+Confirming the code for different values of alpha and beta:
+
+```{r}
+library(shiny)
+library(tidyverse)
+
+# ui codes ----------------------------------------------------------------
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+    sliderInput("n", "Play to increase sample size", min = 1,
+                max = 10, step = 1,value = 10, animate = T),
+    tags$hr(),
+    numericInput("beta", "Beta value", value = 5),
+    tags$hr(),
+    numericInput("alpha", "Alpha Value", value = 5), width = 2
+    ),
+    
+    mainPanel(
+      h3("The likelihood and posterior distributions converge as the sample size n increases"),
+      br(),
+plotOutput("my_plot", height = "500px")
+    )
+    
+  )
+)
+
+# server code -------------------------------------------------------------
+
+server <- function(input, output, session){
+  
+
+
+# define posterior function -----------------------------------------------
+y <- c(24,25,31,31,22,21,26,20,16,22)
+Lambda <- mean(y)
+post <- function(n = 10,alpha = 5, beta = 1/Lambda){
+
+lambda<-Lambda  # 1data initialization
+
+LL <- dpois(y,lambda)  # quartiles of a binomial
+
+# prior
+Prior <- dgamma(y,shape = alpha,scale = beta)  #beta prior distribution
+  
+# posterior
+alpha1 <- n*lambda + alpha
+beta1 <- n+ beta
+
+Postr <- dgamma(y,shape=alpha1,scale = beta1)
+
+ggplot(data = NULL, aes(y, LL/max(LL), col = "Likelihood")) + geom_line(size = 1.0)+
+  geom_line(aes(y, Prior/max(Prior), col = "Prior"), size = 1.0) + 
+  geom_line(aes(y, Postr/max(Postr), col = "Posterior"), size = 1.0) +
+  labs(y = "Density", x= expression(y)) + theme_minimal() +
+  scale_colour_manual("", values = c("Likelihood"="purple", "Prior"="red", "Posterior"="blue")) +
+  theme(legend.position = "top")
+
+}
+
+output$my_plot <- renderPlot({
+  post(n=input$n,alpha = input$alpha, beta = input$beta)
+})
+  
+  
+}
+
+shinyApp(ui, server)
+
+```
+**_c. Show a table of the prior, MLE and posterior estimates of the poison mean under different choices of the gamma priors in (a) above._**
+
+1.When $\alpha=3$ and $\beta=6$
+```{r}
+
+Table_Estimates <- function(alpha,beta){
+  
+y <- c(24,25,31,31,22,21,26,20,16,22)
+lambda <- mean(y)
+MLE <- dpois(y,lambda)
+Prior01 <- dgamma(y,shape = alpha,scale = beta)
+Postr01 <- MLE*Prior01
+
+Estimates <- rbind(MLE,Prior01,Postr01)
+
+return(Estimates)
+
+}
+df <- data.frame(Table_Estimates(3,6))
+df
+```
+**QUESTION TWO**
+
+**_a.Differentiate between Credible Intervals and the Highest Posterior Density (HPD) in Bayesian analysis._**
+
+
+
+A credible interval is an interval within which an unobserved parameter value falls with a particular probability. It is an interval in the domain of a posterior probability distribution or a predictive distribution.On the other hand, a highest posterior density (interval) is basically the shortest interval on a posterior density for some given confidence level.
+
+
+**_b.Graphically demonstrate this for a disease prevalence given that out of 150 individuals 18 had the disease. Hint: assume Binomial distribution_**
+
+Highest Posterior Density (HPD)
+```{r}
+library(binom)
+HPD <- binom.bayes(x=18,n=150,type = "highest",conf.level = 0.95,tol = 1e-9)
+print(HPD)
+binom.bayes.densityplot(HPD)
+```
+
+Credible Interval
+
+```{r}
+library(binom)
+Central <- binom.bayes(x=18,n=150,type = "central",conf.level = 0.95,tol = 1e-9)
+print(Central)
+binom.bayes.densityplot(Central)
+
+```

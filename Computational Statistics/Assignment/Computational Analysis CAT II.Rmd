@@ -1,0 +1,35 @@
+---
+title: "Cat II"
+author: "124384 - Luycer Bosire"
+date: "3/31/2021"
+output: html_document
+---
+```{r}
+setwd("D:/Msc Statistical Science/Computational Statistics/Assignment")
+getwd()
+mmr_df<-read.csv("mmr.csv")
+births_df<-read.csv("births.csv")
+countries_df<-read.csv("countries.csv")
+matdeaths_df<-read.csv("matdeaths.csv")
+colnames(countries_df)[1]<- "iso"
+```
+ 
+```{r}
+library(tidyverse)
+mmr_top10<-(countries_df
+            %>% left_join(mmr_df,by="iso")
+            %>% filter(year==2017)
+            %>% spread(bound,mmr)
+            %>% arrange(desc(point))
+            %>% mutate(n=1:n())
+            %>% filter(n<=10)
+            %>% select(-n)
+            %>% arrange(name))
+
+mmr_top10
+```
+
+```{r}
+write.csv(mm_top10, file="mmr_top10.csv", row.names=F)
+```
+ 

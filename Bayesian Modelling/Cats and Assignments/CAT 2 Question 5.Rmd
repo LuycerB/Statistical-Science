@@ -1,0 +1,28 @@
+---
+title: "Bayesian Modelling Assignment"
+author: "124384 Luycer Bosire"
+date: "3/14/2021"
+output: html_document
+---
+
+***Question 5*** Briefly descirbe Gibbs sampler for parameters $$ \theta_1,\theta_2,\theta_3 $$ with joint distribution $$ p(y|\theta_1,\theta_2, \theta_3) $$.
+
+We are interested in sampling from the posterior $$ p(\theta|y)$$ where $$\theta$$ is a vector of three parameters $$ \theta_1, \theta_2, \theta_3$$.
+
+Step 1: Pick a vector of starting values $$ \theta^{(0)} $$ (Defining a starting distribution $$ \pi ^{(0)} $$ and drawing $$ \theta^{(0)}$$ from it).
+
+Step 2: Start with any $$\theta$$. The order does not matter, but we will start with $$\theta$$ for convenience. We draw a value $${\theta_1}^{(1)}$$ from the full conditional 
+$$ p(\theta_1|{\theta_1}^{(1)},{\theta_2}^{(1)},y)$$.
+
+Step 3: We draw a value $${\theta_3}^{(1)}$$ from the full conditional $$ p(\theta_2|{\theta_1}^{(1)},{\theta_3}^{(1)},y)$$.Again, the order does not matter. We must use the updated value of $${\ theta_1}^{(1)}$$.
+
+Step 4: We draw a value $${\theta_3}^{(1)}$$ from the full conditional $$ p(\theta_3|{\theta_1}^{(1)},{\theta_2}^{(1)},y)$$ using updated values.
+Steps 2-4 are analogous to multiplying $$\pi^{(0)}$$ and P to get $$\pi^{(0)}$$ and then drawing $$\theta^{(1)}$$ from $$\pi^{(0)}$$.
+
+Step 5: Draw $$\theta^{(2)}$$ using $$\theta^{(1)}$$ and continuously using the most updated values.
+
+Step 6: Repeat until we get m draws with each draw being a vector of $$\theta^{(t)}$$.
+
+Step 7: Optional burn-in and/or thinning.
+
+Our result is a Markov chain with a bunch of draws of $$\theta$$ that are approximately from our posterior. We can do Monte Carlo Integration on the draws to get quantities of interest.

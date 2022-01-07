@@ -1,0 +1,11 @@
+"iso","name","region","year","lower","point","upper","LMat_deaths","PtMat_deaths","UMat_deaths","PropMat_deaths"
+"AFG","Afghanistan","Eastern Mediterranean",2017,427,638,1010,5100,7700,12000,0.007
+"CAF","Central African Republic","Africa",2017,463,829,1470,770,1400,2400,0.003
+"TCD","Chad","Africa",2017,847,1140,1590,5400,7300,10000,0.009
+"GNB","Guinea-Bissau","Africa",2017,457,667,995,300,440,650,0.002
+"LBR","Liberia","Africa",2017,481,661,943,760,1000,1500,0.003
+"MRT","Mauritania","Africa",2017,528,766,1140,770,1100,1700,0.003
+"NGA","Nigeria","Africa",2017,658,917,1320,48000,67000,96000,0.054
+"SLE","Sierra Leone","Africa",2017,808,1120,1620,2100,2900,4100,0.005
+"SOM","Somalia","Eastern Mediterranean",2017,385,829,1590,2400,5100,9800,0.005
+"SSD","South Sudan","Africa",2017,789,1150,1710,3000,4500,6600,0.006

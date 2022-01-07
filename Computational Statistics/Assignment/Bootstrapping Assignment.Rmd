@@ -1,0 +1,166 @@
+---
+title: "Computational Statistics Assignment"
+author: "Luycer Bosire"
+date: "4/14/2021"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+subtitle: Bootstrapping
+---
+
+install.packages("markdown")
+install.packages("knitr")
+\sect {1. Explain what bootsrapping is.}
+
+The bootstrap is a widely applicable and extremely powerful statistical tool used to quantify the uncertainty associated with a given estimate or statistical learning. The bootstrap resampling method can be used to measure the accuracy of a predictive model. It can be used to estimate the standard errors of the coefficient from a linear regression fit.
+
+The bootstrap algorithm begins by generating a large number of independent bootstrap samples $\pmb Y^{*1}, \pmb Y^{*2},\ldots,\pmb Y^{*B}$ each of size $n.$ Typical values for $B,$ the number of bootstrap samples, range from $50$ to $200$ for standard error estimation. 
+
+Corresponding to each bootstrap sample is a *bootstrap replication* of $s,$ namely $s(\pmb y^{*b}),$ the value of the statistic $s$ evaluated for $\pmb y^{*b}.$ 
+  
+If $s(y)$ is the sample median, for instance, then $s(y*)$ is the median of the bootstrap sample. The bootstrap estimate of standard error is the standard deviation of the bootstrap replications,
+
+$$\hat {se}_{boot}=\sqrt {\frac {1}{B-1}\sum_{b=1}^B\left[ s(\pmb Y^{*b})-s(.)\right]^2},$$
+where $s(.)=\frac {1}{B}\sum_{b=1}^B s(\pmb Y^{*b})$
+  
+#2. Use examples to show the difference between parametric and non-parametric bootsrap.
+
+Non-parametric bootstrapping is where the data under analysis comes from the same distribution and sample size as the data at hand and thus is sampled with replacement to preserve the probability density function from the dataset itself. 
+
+A brief overview of the non-parametric bootstrap method below serves as our example;
+
+Given $$X_i = 1,....,n$$) iid from $$\pmb f(.)$$. $$\hat \theta_n = h(X_1,...., X_n$$ is an estimator of $$\theta$$ and and $$T_n$$ is a centered or standardized random variable constructed from for example;
+
+$$T_n = \frac{\sqrt n(\hat \theta - \theta_0)}{v_n}$$ where $$v_n$$ is a known standard deviation or estimated standard deviation, say $$v_n = h_1(X_1,....,X_n)$$.
+
+Consider $$X_i^*$$ iid from $$\pmb F_n$$, the empirical distribution function of $$X_1, X_2,....,X_n$$. Based on these iid random variables construct using the same formula as for $$\hat \theta_n$$ and $$v_n$$ that is the same as *$$h, h_i$$*;
+
+$$\hat \theta_n^* = h(X_1^*,....,X_n^*), (v_n^*)^2=h(X_1^*,....,X_n^*)$$ and
+
+$$T_n^* = \frac{\sqrt n (\hat \theta_n^* - \hat \theta {obs})} {v_n^*}$$
+Parametric bootsrapping assumes that the data comes from a known distribution with unknown parameters. The parameters are estimated from the data at hand and used to estimate distributions to simulate the samples.
+
+A brief overview of the parametric bootstrap method below serves as our example;
+
+Given $$X_i = 1,....,n$$) iid from $$\pmb f(.;\theta), \theta \epsilon \phi)$$. $$\theta_0$$ is used to denote the true value of the parameter. $$\hat \theta_n = h(X_1,....,X_n)$$ is an estimator of $$\theta$$ and $$T_n$$ is a centered or standardized random variable constructed from for example;
+
+$$T_n = \frac{\sqrt n(\hat \theta - \theta_0)}{v_n}$$ where $$v_n$$ is a known standard deviation or estimated standard deviation, say $$v_n = h_1(X_1,....,X_n)$$.
+
+Consider $$X_i^*$$ iid from $$\pmb f(.;\hat \theta_{obs})$$. Based on these iid random variables construct using the same formula as for $$\hat \theta_n$$ and $$v_n$$ that is the same as *$$h, h_i$$*;
+
+$$\hat \theta_n^* = h(X_1^*,....,X_n^*)$$ and
+
+$$T_n^* = \frac{\sqrt n (\hat \theta_n^* - \hat \theta {obs}} {v_n^*}$$
+The difference between parametric and non-parametric lies in the distribution of the sample $$X_i^*$$
+We use Monte Carlo simulation with **M** simulation steps of size *n* each to approximate the sampling distribution of $$T_n^*$$ for this given $$\theta_{obs}$$. 
+
+The parametric bootstrap theory is that $$T_n^*$$ and $$T_n$$ have approximately the same distribution, thus approximately the same quantiles.
+
+#3. Explain the bootsrap Confidence Interval.
+
+Using an example of a population from a normal distribution of sample size $$n$$ and parametric boostraping resampling; 
+
+a. Compute the sample mean $$\bar x$$ and variance $$s^2$$. The bootsrap samples can be taken by generating random samples of size $$n$$ from $$N(x,s^2)$$.
+
+b. Suppose we take a sample of 1000, the set of 1000 bootstrap sample means should be a good estimate of the sampling distribution of x. 
+
+c. A 95% CI for the population mean is then formed by sorting the bootstrap means from lowest to highest, and dropping the 2.5% smallest and largest remaining values at the ends of the CI.
+
+Based on the example in *question 2* we can obtain quantiles for the central 0.95 region by solving for $$\theta_0$$ from
+
+$$c_L^* \le \frac {\sqrt n (\hat \theta_n - \theta_0)} {v_n} \le c_U^*$$
+
+#4. Use the in-built function boot to illustrate various aspects of boostrapping.
+
+Performing a bootstrap analysis in R entails two steps.
+First, we create a function that computes the statistic of interest. Then we use the **boot()** function, which is be of the **boot** library to perform the bootstrap by repeatedly sampling observations from the dataset with replacement.
+
+We make use of the **Portfolio** dataset in the package **ISLR**.
+
+First we create a function **bootanalysis** that takes input X and Y data and a vendor indicating which observations should be used to estimate a parameter $$\alpha$$. The function then outputs the estimate for $$\alpha$$ based on the selected observations.
+
+```{r, echo = TRUE}
+library(ISLR)
+attach(Portfolio)
+
+bootanalysis<- function(data,index){
+X<- data$X[index]
+Y<- data$Y[index]
+return((var(Y)-cov(X,Y))/(var(X)+var(Y)-2*cov(X,Y)))}
+```
+
+
+This function returns an estimate for $$\alpha$$. For example, the following command tells $$R$$ to estimate $$\alpha$$ using all 100 observations.
+
+```{r, echo = TRUE}
+set.seed(1)
+bootanalysis(Portfolio, sample(100,100, replace = T))
+```
+
+The above procedure will require us to perform the command many times, recording all of the corresponding estimates for $$\alpha$$ and computing the resulting standard deviation.
+
+We produce R=1000 bootstrap estimates for $$\alpha$$
+
+```{r, echo=TRUE}
+library(boot)
+boot(Portfolio, bootanalysis, R=1000)
+```
+
+The output shows that using the original data, $$\hat \alpha = 0.5758$$ and that the bootstrap estimate for $$SE(\hat \alpha) = 0.094$$
+
+Next we analyze the accuracy of a linear regression model. We assess the variability of the estimates for $$\beta_0$$ and $$\beta_1$$, the intercept and the slope terms for the linear model
+
+```{r, echo = TRUE}
+bootanalysis<- function(data, index){
+  return(coef(lm(mpg~horsepower, data = data, subset = index)))
+}
+
+bootanalysis(Auto, 1:392)
+```
+Next we create bootstrap estimates for the intercept and slope terms by randomly sampling from among the observations with replacement.
+
+```{r, echo = TRUE}
+
+set.seed(1)
+bootanalysis(Auto, sample(392,392, replace = T))
+bootanalysis(Auto, sample(392,392, replace = T))
+```
+
+We then use the *boot()* function to compute the standard errors of 1000 bootstrap estimates for the intercept and slope terms
+
+```{r, echo = TRUE}
+boot(Auto, bootanalysis, 1000)
+````
+
+This indicates that the bootstrap estimate for $$SE(\hat \beta_0) = 0.84 ,SE(\hat \beta_1) =  0.007$$
+
+#5. Using wages dataset in R and use the bootstrap estimates to estimate the variance of the sample median as well as the 95% CI for the population median.
+
+```{r, echo = TRUE}
+library(boot)
+library(ISLR)
+
+data(Wage)
+median(Wage$wage)
+
+var(Wage$wage)
+
+data_medians<- function(x, indices){
+  return(median(x[indices]))
+}
+wage_bootstrapanalysis<- boot(Wage$wage, data_medians, 10000)
+
+#We compute the original sample median
+median(Wage$wage, 1:length(Wage$wage))
+wage_bootstrapanalysis$t0
+
+#Note that the 2 medians are similar
+
+wage_bootstrapanalysis$R
+wage_bootstrapanalysis$call
+
+boot(data = Wage$wage, statistic = data_medians, R = 10000)
+
+boot.ci(wage_bootstrapanalysis)
+```

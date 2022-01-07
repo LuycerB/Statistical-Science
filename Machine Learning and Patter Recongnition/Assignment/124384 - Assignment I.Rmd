@@ -1,0 +1,206 @@
+---
+title: "Machine Learning and Pattern Recognition - Assignment I"
+author: "124384 - Luycer Bosire"
+date: "6/27/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+The aim of this analysis is to perform an exploratory data analysis on the Table 2.05 dataset. To perform a complete exploratory data analysis we:
+
+\begin{enumerate}
+\item maximize insight into a data set;
+\item uncover underlying structure;
+\item extract important variables;
+\item detect outliers and anomalies;
+\item test underlying assumptions;
+\item develop parsimonious models; and
+\item determine optimal factor settings.
+\end{enumerate}
+
+Importing the data:
+
+```{r}
+employeedata<-read.csv("Table_203a.csv")
+View(employeedata)
+attach(employeedata)
+```
+
+Our dataset variables are:
+
+\begin{enumerate}
+\item current salary;
+\item starting salary;
+\item sex/gender;
+\item job category;
+\item race;
+\item education level;
+\item seniority; 
+\item age; and
+\item experience.
+\end{enumerate}
+
+We may wish to explore any viable relationships between the variables in the dataset and identify patterns in the variable data.
+
+We test for the presence or absence of a fixed location and a fixed scale in the dataset by plotting various numeric variables against time:
+
+```{r, CURRENT}
+library(ggplot2)
+t<-seq(1:length(employeedata$CURRENT)) #We set out time parameter
+
+par(mfrow = c(3,3))
+#Run-sequential plot for current salary variable
+ggplot(employeedata, aes(x=t, y=CURRENT)) + geom_line() + geom_point() + geom_smooth(method=lm) 
+#Run-sequential plot for starting salary variable
+ggplot(employeedata, aes(x=t, y=START)) + geom_line() + geom_point() + geom_smooth(method=lm)
+#Run-sequential plot for education variable
+ggplot(employeedata, aes(x=t, y=EDUC)) + geom_line() + geom_point() + geom_smooth(method=lm) 
+#Run-sequential plot for seniority level variable
+ggplot(employeedata, aes(x=t, y=SENIOR)) + geom_line() + geom_point() + geom_smooth(method=lm) 
+#Run-sequential plot for age variable
+ggplot(employeedata, aes(x=t, y=AGE)) + geom_line() + geom_point() + geom_smooth(method=lm) 
+#Run-sequential plot for experience variable
+ggplot(employeedata, aes(x=t, y=EXPER)) + geom_line() + geom_point() + geom_smooth(method=lm) 
+
+```
+Fixed location: The visualization derived from plotting current salary, starting salary, education and seniority level against time suggests that there is fixed location  as the line of best fit is fairly parallel to the x-axis.
+
+The plots of age and experience depict no fixed location as the line of best fit is not parallel to the x-axis.
+
+Fixed scale: All visuals suggest an absence of a fixed scale as there is inconsistent variation in the data points from the line of best fit.
+
+We investigate for the presence or absence of randomness in the dataset by using lagplots:
+
+```{r}
+library(forecast)
+par(mfrow = c(3,3))
+gglagplot(employeedata$CURRENT, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+gglagplot(employeedata$START, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+gglagplot(employeedata$EDUC, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+gglagplot(employeedata$SENIOR, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+gglagplot(employeedata$AGE, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+gglagplot(employeedata$EXPER, set.lag = 1, diag.col = "black",  do.lines = FALSE, colour = TRUE) + geom_point()
+```
+
+There is no defined structure in the points in the vizualizations. Therefore the data in all the variables in the dataset is random.
+
+Histograms are used to possibly identify the distribution of the data and to delineate the pattern of variation within the data:
+
+```{r}
+par(mfrow = c(3,3))
+ggplot(employeedata, aes(CURRENT)) + geom_histogram(col = 28)
+ggplot(employeedata, aes(START)) + geom_histogram(col = 28)
+ggplot(employeedata, aes(EDUC)) + geom_histogram(col = 28)
+ggplot(employeedata, aes(SENIOR)) + geom_histogram(col = 28)
+ggplot(employeedata, aes(AGE)) + geom_histogram(col = 28)
+ggplot(employeedata, aes(EXPER)) + geom_histogram(col = 28)
+```
+
+We assess for Univariate Normality in the distribution of the numeric variables in our dataset:
+
+```{r}
+library(psych)
+library(tidyverse)
+employeedata %>% select (-c(3:5)) %>% 
+  pairs.panels (gap = 0, cex.cor = 1.5)
+```
+
+From the visual results, we derive that the *CURRENT* variable potrays a Normal distribution and *Experience* a Chi-Square distribution.
+
+Further, there is high variable corelation between *CURRENT* and *START* at 60%, *START* and *EDUC* at 60% and *AGE* and *EXPER* at 89%.
+
+To test for Multivariate Normality we use the *"heplots"* package.
+
+```{r}
+library(heplots)
+cqplot (employeedata[ ,-c(3:5)], id.n = 7, main = "Chi-Square QQ Plot of Employee Data with outliers") #Identify outliers
+cqplot (employeedata[ -c(4,29,79,42,92,54,46) ,-c(3:5)], main = "Chi-Square QQ Plot of Employee Data without outliers") #Plot without the outliers
+```
+From the chi-square plot without outliers, the data plots deviate from the line of best fit indicating the absence of the normality assumption.
+
+We develop a parsimonious model. 
+
+Model 0: We build a model with variable y as current salary and regress the other variables on our response variable.
+
+We first convert our variables:
+
+```{r}
+library(magrittr)
+str(employeedata)
+employeedata %<>% mutate_if (is.integer, as.numeric)  
+employeedata %<>% mutate_if (is.character, as.factor)  
+str(employeedata)
+```
+
+Next we fit a linear model:
+```{r}
+library(MASS)
+library(tidymodels)
+library(parameters)
+
+model_0 <- lm(CURRENT~., data = employeedata)
+summary(model_0)
+model_parameters(model_0)
+
+#To select our important varibales using Stepwise selction
+stepAIC(model_0)
+
+pars_model <- lm(formula = CURRENT ~ START + SEX + JOBCAT + EDUC + SENIOR + AGE, data = employeedata)
+summary(pars_model)
+model_parameters(pars_model)
+
+attributes(pars_model)
+
+```
+
+While stepwise selection aids in identifying important or significant variables, it does not combat multi-colinearity. 
+
+```{r}
+library(MVA)
+par(mfrow = c (2,2))
+chiplot(employeedata$CURRENT, employeedata$START)
+chiplot(employeedata$CURRENT, employeedata$EDUC)
+chiplot(employeedata$START, employeedata$EDUC)
+chiplot(employeedata$AGE, employeedata$EXPER)
+```
+
+The visuals indicate dependence. For a linear model the data set fails to meet the independence assumption.
+
+Further from the chisquare plots, the *current* variable was the only normally distributed variable and experience a Chi-square distribution. Therefore the variables in the dataset are not identically distributed.
+
+We can either log transform our variables to be normally distributed or perform a PCA.
+
+We log transform our datasets:
+```{r}
+new_employeedata <- log(employeedata[ ,c(1:2,6:8)]) 
+
+library(heplots) 
+cqplot (new_employeedata[ ,-c(3:5)], id.n = 7, main = "Chi-Square QQ Plot of Employee Data with outliers") #Identify outliers
+cqplot (new_employeedata[ -c(42,92) ,-c(3:5)], main = "Chi-Square QQ Plot of Employee Data without outliers") #Plot without the outliers
+```
+and confirm that there are still departures hence the variables are not Normally Distributed.
+
+We perform a PCA analysis on the dataset:
+
+```{r}
+PCA_employeedata <- princomp(employeedata[ ,-c(1, 3:5)], cor = TRUE, scores = TRUE)
+summary(PCA_employeedata, loadings = TRUE)
+
+library(factoextra)
+fviz_eig(PCA_employeedata)
+```
+
+Based on the cumulative proportion of the principle components contribution to the variation of the full models variation, we select the first 2 components to form our final model.The linear combination of the variables in our final model is:
+
+```{r}
+Scores <-PCA_employeedata$scores
+fit_PCA <- lm(employeedata$CURRENT~ Scores[ ,c(1:2)])
+summary(fit_PCA)
+```
+
+The parsimonious model is:
+$$ lm (CURRENT \sim 10038.88+907.29PC_1+860.19PC_2)$$
+
+
+
+

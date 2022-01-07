@@ -1,0 +1,111 @@
+---
+title: "Installing WinBugs"
+author: "124384 Luycer Bosire"
+date: "3/15/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+Step 1: install and load the packages
+
+```{r, echo = TRUE}
+library("R2OpenBUGS")
+library("coda")
+library("readr")
+````
+
+Step 2: set working directory and load the data
+````{r, echo = TRUE}
+setwd("D:/Msc Statistical Science/Bayesian/Data and Codes")
+wd <- getwd()
+osteop <- read_delim("osteop.txt", " ", escape_double = FALSE, trim_ws = TRUE)
+````
+
+Step 3: check the loaded data
+````{r, echo = TRUE}
+head(osteop)
+summary(osteop)
+````
+Step 4: write the BUGS program and put it in a txt le (one possibility). To verify the program, look at it:
+````{r, echo = TRUE}
+file.show("osteo.model.txt")
+````
+
+Step 5: Prepare the data and collect them into the object `data'
+````{r, echo = TRUE}
+N <- length(osteop$TBBMC)
+data <- list (tbbmc=osteop$TBBMC, bmi=osteop$BMI, N=N)
+````
+
+Step 6: Prepare the initial values for 3 chains, we show two ways:
+# One way: give the values explicitly for each chain
+````{r, echo = TRUE}
+inits <- list(list(beta0=0.4,beta1=0.025,tau=1/0.05),
+              list(beta0=0.4,beta1=0.055,tau=1/0.05),
+              list(beta0=0.4,beta1=0.025,tau=1/0.12))
+
+# Other way: generate them randomly
+inits <- function()(list(beta0=rnorm(1,0.4,1), beta1=rnorm(1), tau=runif(1,0.5,1)))
+````
+
+Step 7: Collect the parameters to monitor into one vector
+````{r, echo = TRUE}
+parameters <- c("beta0", "beta1", "sigma2")
+````
+
+Step 8: Run the R program bugs
+````{r, echo = TRUE}
+
+osteo.sim <- bugs(data, inits, parameters, "osteo.model.txt", n.chains=3, n.iter=1500, n.burnin = 0, n.thin=1, OpenBUGS.pgm="C:/Program Files (x86)/OpenBUGS/OpenBUGS323/OpenBUGS.exe", working.directory = wd, clearWD=FALSE, debug=TRUE, DIC=TRUE)
+````
+
+Step 9: Produce general summary of obtained MCMC sampling
+````{r, echo = TRUE}
+print(osteo.sim)
+plot(osteo.sim)
+````
+
+Step 10: Convert osteo.sim into mcmc.list for processing with CODA
+````{r, echo = TRUE}
+osteo.mcmc <- as.mcmc.list(osteo.sim)
+````
+
+Step 11: Produce general summary of obtained MCMC sampling
+````{r, echo = TRUE}
+plot(osteo.mcmc)
+summary(osteo.mcmc)
+````
+
+Step 12: Specic output obtained from CODA functions
+````{r, echo = TRUE}
+par(mfrow=c(2,2)) # plot figures in 2x2 format if function allows
+traceplot(osteo.mcmc) # trace plots
+cumuplot(osteo.mcmc,ask=FALSE) # running mean plots
+acfplot(osteo.mcmc) # autocorrelation function plot
+autocorr(osteo.mcmc) # autocorrelation values
+crosscorr.plot(osteo.mcmc) # cross-correlation output
+densplot(osteo.mcmc) # density plots of the marginal posteriors
+effectiveSize(osteo.mcmc) # effective size
+HPDinterval(osteo.mcmc) # HPD intervals of all parameters
+````
+
+Step 13: Other functions: convergence tests
+````{r, echo = TRUE}
+gelman.diag(osteo.mcmc)
+gelman.plot(osteo.mcmc,ask=FALSE)
+geweke.diag(osteo.mcmc)
+geweke.plot(osteo.mcmc,ask=FALSE)
+````
+
+Final step: Interpret the results and make conclusions
+Now we can access WinBUGS or OpenBUGS. The calls are slightly different:
+## Running WinBUGS
+````{r, echo = TRUE}
+library("R2WinBUGS")
+graft.Weib <- bugs(data = dataBUGS, inits = initsWeib, parameters.to.save = parameters, model.file = "Homograft-Bayes_ParamAFT_Weib.txt", n.chains = 3, n.burnin = 10000, n.iter = 60000, n.thin = 10, bugs.directory = "C:/Programs/WinBUGS14", working.directory = NULL, codaPkg = TRUE, debug = TRUE)
+
+## Running OpenBUGS
+library("R2OpenBUGS")
+graft.Weib <- bugs(data = dataBUGS, inits = initsWeib, parameters.to.save = parameters, model.file = "Homograft-Bayes_ParamAFT_Weib.txt", n.chains = 3, n.burnin = 10000, n.iter = 60000, n.thin = 10, clearWD = FALSE, debug = TRUE)
+````

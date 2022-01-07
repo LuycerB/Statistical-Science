@@ -1,0 +1,201 @@
+---
+title: "Computational Analysis Cat II"
+author: "124384 - Luycer Bosire"
+date: "3/10/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+***Question One***
+
+i. We load the data into R by first setting our working directory;
+
+```{r, echo=TRUE}
+setwd("~/Other/Msc Statistical Science/Computational Analysis/Data")
+dir()
+
+mmr.data <- read.csv("mmr.csv", header = TRUE)
+head(mmr.data)
+
+```
+
+Use the MMR point estimates for 2017 to select 10 countries with the highest MMR;
+
+```{r, echo=TRUE}
+library(dplyr)
+
+my.data <- subset(mmr.data,year == 2017)
+
+my.data %>%
+  group_by(iso) %>%
+  arrange(desc(mmr))
+
+use.data <- my.data[1:10 ,]
+use.data
+```
+a. sort country name alphabetically
+
+```{r, echo = TRUE}
+iso.data <- use.data[order(use.data$iso), ]
+iso.data
+```
+
+b. the MMR point estimate for 2017 and the lower and upper bound
+
+```{r, echo = TRUE}
+
+my.data <- subset(mmr.data,year == 2017)
+
+point.estimate.data <- my.data$mmr
+
+#A point estimate is the mean 
+point.estimate <- mean(point.estimate.data, na.rm = TRUE)
+point.estimate
+
+#Upper bound and lower bound
+upper.bound <- subset(my.data,bound == "upper")
+upper.bound.data <- upper.bound$mmr
+upper.point.estimate <- mean(upper.bound.data)
+
+lower.bound <- subset(my.data,bound == "lower")
+lower.bound.data <- lower.bound$mmr
+lower.point.estimate <- mean(lower.bound.data)
+
+sd_hat <- sd(point.estimate.data, na.rm = TRUE)
+upper_bound <- sd_hat
+lower_bound <- (sd_hat*-1)
+
+bounds <- c(lower_bound,upper_bound)
+round(bounds, digits = 3)
+
+estimate<- c(point.estimate, lower.point.estimate, upper.point.estimate, bounds)
+estimate
+```
+
+c. annual rate of reduction (AAR) for 2000 - 2017
+
+d. estimated number of maternal deaths for 2017 as well as the upper and lower bounds
+```{r, echo = TRUE}
+
+setwd("~/Other/Msc Statistical Science/Computational Analysis/Data")
+
+matdeaths.data <- read.csv("matdeaths.csv", header = TRUE)
+head(matdeaths.data)
+
+point.estimate.data <- matdeaths.data$value
+
+#A point estimate is the mean 
+point.estimate <- mean(point.estimate.data, na.rm = TRUE)
+point.estimate
+
+#Upper bound and lower bound
+upper.bound <- subset(matdeaths.data,bound == "upper")
+upper.bound.data <- upper.bound$value
+upper.point.estimate <- mean(upper.bound.data)
+
+lower.bound <- subset(matdeaths.data,bound == "lower")
+lower.bound.data <- lower.bound$value
+lower.point.estimate <- mean(lower.bound.data)
+
+sd_hat <- sd(point.estimate.data, na.rm = TRUE)
+upper_bound <- sd_hat
+lower_bound <- (sd_hat*-1)
+
+bounds <- c(lower_bound,upper_bound)
+round(bounds, digits = 3)
+
+matdeaths.estimate<- c(point.estimate, lower.point.estimate, upper.point.estimate, bounds)
+matdeaths.estimate
+```
+e. the share of maternal deaths as a proportion of the global total for 2017 for each of the 10 countries
+
+Output your results in csv format
+```{r, echo=TRUE}
+write.csv(use.data, file = "UseData.csv")
+write.csv(estimate, file = "Estimates.csv")
+write.csv(matdeaths.estimate, file = "MatDeathsEstimates.csv")
+
+dir()
+```
+
+ii. Loading this data into r;
+```{r, echo = TRUE}
+mytable.data <- read.csv("arsenic.csv", header = TRUE)
+head(mytable.data, 3)
+```
+
+***Question Two***
+
+i. If $X \sim Exp(1),$ then $F(x)=1 - exp(-x).$ Solving $x$ in $u=1 - exp(-x)$ gives:
+
+$$u=1-exp(-x)\\exp(-x)=1-u\implies X=-log (U)\sim exp(1).$$
+
+Compare the random generation between uniform transformation and the exponential distribution using 10000 random numbers
+```{r, echo = TRUE}
+
+Nsim=10^4 #number of random variables
+U=runif(Nsim)
+X=-log(U) #transforms of uniforms
+Y=rexp(Nsim) #exponentials from R
+par(mfrow=c(1,2)) #plots
+hist(X,freq=F,main="Exp from Uniform")
+hist(Y,freq=F,main="Exp from R")
+
+```
+
+The fits of both histograms to their exponential limit are not distinguishable.The representations can always be generated from deterministic uniform random variables.
+
+ii. load the library ape and produce a pie chart
+install.packages("ape")
+
+```{r, echo = TRUE}
+
+library(ape)
+library(plotrix)
+
+bank<-table(read.GenBank(c("X94991.1"), as.character=TRUE))
+bank
+
+colors = c('#4286f4','#bb3af2','#ed2f52','#efc023')
+labels=c("A","B","C","D")
+pie(bank, labels, main='GenBank', col=colors, init.angle=180, clockwise=TRUE)
+
+colors = c('#4286f4','#bb3af2','#ed2f52','#efc023')
+labels=c("A","B","C","D")
+pie3D(bank, labels=labels, explode=0.1, height=0.05, main='Genbank 3D Piechart', col=colors)
+
+```
+
+iii. Use the file "gapminder.csv' to perform the following analysis;
+```{r, echo=TRUE}
+data_set<-read.csv("gapminder.csv")
+str(data_set)
+head(data_set)
+```
+
+a. Obtain data set for only the year 1982
+
+```{r, echo=TRUE}
+data_1982<- subset(data_set,subset = year==1982)
+head(data_1982)
+str(data_1982)
+```
+b. Obtain data set for the American countries in 1997
+
+```{r, echo=TRUE}
+data_America<-subset(data_set,continent == "Americas"& year==1997)
+head(data_America)
+```
+
+c. Add a column to the data set loaded in R with the new column being gdp which is computed as gdp=popgdpPercap*
+
+```{r, echo=TRUE}
+attach(data_set)
+GDP<-function(pop,gdpPercap){pop*gdpPercap}
+gdp<-GDP(pop,gdpPercap)
+head(gdp)
+
+data_set_1<- cbind(data_set,gdp)
+str(data_set_1)
+```
