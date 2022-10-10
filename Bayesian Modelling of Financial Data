@@ -1,0 +1,3 @@
+Despite the growing signifivant advances in the modelling of the term structure of interest rates after the recession of 2008, little attention has been paid to the problem of forecasting the term structure which has proven to be an important rate inseveral products and financial instruments offered by financial institutions.
+This documentation offers insights into the use of Dynamic Nelson Siegel model with a Time-Varying Vector-AutoRegressive component to fit a model to forecast the Term Structure of Interest Rates for the short and long horizons.
+Keywords; Bayesian Statistical Modelling, Dynamic Nelson-Siegel, TV-VAR models, Term Structure of Interest Rates.
